@@ -995,7 +995,13 @@ function renderTxnTable(){
       <td><span class="entity-chip"><span class="entity-dot" style="background:${CAT_COLORS[tx.cat]||'#888'}"></span>${tx.cat}</span></td>
       <td><span class="badge ${tx.type==='ingreso'?'badge-green':'badge-red'}">${tx.type==='ingreso'?t('opt_income'):t('opt_expense')}</span></td>
       <td style="font-weight:500;color:${tx.type==='ingreso'?'var(--green)':'var(--red)'}">${tx.type==='ingreso'?'+':'-'}${fmt(tx.amount)}</td>
+      <td><button onclick="deleteTxn(${tx.id})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;border-radius:4px;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button></td>
     </tr>`).join('');
+}
+function deleteTxn(id){
+  txns=txns.filter(t=>t.id!==id);
+  renderTxnTable();
+  toast('✓ '+(lang==='en'?'Deleted':lang==='pt'?'Excluído':'Eliminado'));
 }
 function addTxn(){
   const desc=document.getElementById('txn-desc').value.trim();
@@ -1018,7 +1024,10 @@ function renderBudget(){
   document.getElementById('budget-form').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>`
     <div class="form-group" style="margin-bottom:10px">
       <label class="form-label"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[c]};margin-right:6px"></span>${c}</label>
-      <input type="number" id="b-${c}" value="${budgets[c]||0}" min="0">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="b-${c}" value="${budgets[c]||0}" min="0" style="flex:1">
+        <button onclick="resetBudget('${c}')" style="background:none;border:0.5px solid var(--border2);cursor:pointer;color:var(--muted);font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;font-family:'DM Sans',sans-serif" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕ Reset</button>
+      </div>
     </div>`).join('');
   const mt=getMonthTxns();
   document.getElementById('budget-status').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>{
@@ -1035,6 +1044,12 @@ function renderBudget(){
 function saveBudgets(){
   CATS.filter(c=>c!=='Salario').forEach(c=>{const v=parseFloat(document.getElementById('b-'+c).value);if(!isNaN(v))budgets[c]=v;});
   renderBudget(); toast('✓ '+(lang==='en'?'Budgets saved':lang==='pt'?'Orçamentos salvos':'Presupuestos guardados'));
+}
+function resetBudget(cat){
+  budgets[cat]=0;
+  document.getElementById('b-'+cat).value=0;
+  renderBudget();
+  toast('✓ '+(lang==='en'?'Reset':lang==='pt'?'Resetado':'Reseteado')+' — '+cat);
 }
 
 // ══════════════════════════════════════════════
@@ -1077,7 +1092,8 @@ function renderDebts(){
             <div class="debt-type-tag">${debtTypeName(d.type)}${d.currency!=='PYG'?' · '+d.currency:''}</div>
           </div>
         </div>
-        <div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <button onclick="deleteDebt(${d.id})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 6px;border-radius:4px;transition:color 0.15s;line-height:1" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
           <div class="debt-amount" style="color:var(--red)">${fmt(d.balance,d.currency)}</div>
           <div class="debt-amount-label">${t('balance_label')}</div>
         </div>
@@ -1141,9 +1157,12 @@ function saveDebt(){
   toast('✓ '+(lang==='en'?'Debt added':lang==='pt'?'Dívida adicionada':'Deuda agregada'));
 }
 
-// ══════════════════════════════════════════════
-// CREDIT
-// ══════════════════════════════════════════════
+function deleteDebt(id){
+  debts=debts.filter(d=>d.id!==id);
+  renderDebts();
+  toast('✓ '+(lang==='en'?'Deleted':lang==='pt'?'Excluído':'Eliminado'));
+}
+
 function renderCredit(){
   const cards=debts.filter(d=>d.type==='credit_card');
   const totalLimit=cards.reduce((s,d)=>s+d.limit,0);
@@ -1223,6 +1242,7 @@ function renderOKR(){
         <div style="display:flex;align-items:center;gap:12px;min-width:220px">
           <div class="prog-wrap" style="flex:1"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
           <div style="font-size:14px;font-weight:500;color:${color};min-width:36px;text-align:right">${pct}%</div>
+          <button onclick="deleteObj(${oi})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;border-radius:4px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
         </div>
       </div>
       <div class="okr-body">${o.krs.map((kr,ki)=>{
@@ -1232,6 +1252,7 @@ function renderOKR(){
             <div class="kr-name">${kr.name}</div>
             <div class="kr-val">${kr.current.toLocaleString()} / ${kr.target.toLocaleString()} — ${kpct}%</div>
             <input type="number" style="width:90px;font-size:11px;padding:4px 8px;border-radius:6px" value="${kr.current}" onchange="updateKR(${oi},${ki},this.value)">
+            <button onclick="deleteKR(${oi},${ki})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
           </div>
           <div class="prog-wrap prog-wrap-xs"><div class="prog-bar" style="width:${kpct}%;background:${kc}"></div></div>
         </div>`;
@@ -1240,6 +1261,16 @@ function renderOKR(){
   }).join('');
 }
 function updateKR(oi,ki,val){ objectives[oi].krs[ki].current=parseFloat(val)||0; renderOKR(); }
+function deleteKR(oi,ki){
+  objectives[oi].krs.splice(ki,1);
+  renderOKR();
+  toast('✓ KR '+(lang==='en'?'deleted':lang==='pt'?'excluído':'eliminado'));
+}
+function deleteObj(oi){
+  objectives.splice(oi,1);
+  renderOKR();
+  toast('✓ '+(lang==='en'?'Deleted':lang==='pt'?'Excluído':'Eliminado'));
+}
 
 function renderOKRFin(){
   const mt=getMonthTxns();
