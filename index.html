@@ -3,853 +3,1419 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>finance+okr — MVP 1</title>
+<title>finance+okr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg-primary:#ffffff;--bg-secondary:#f5f5f3;--bg-tertiary:#eeede9;
-  --text-primary:#1a1a18;--text-secondary:#73726c;--text-tertiary:#9c9a92;
-  --border-tertiary:rgba(0,0,0,0.12);--border-secondary:rgba(0,0,0,0.2);--border-primary:rgba(0,0,0,0.35);
-  --radius-md:8px;--radius-lg:12px;
+  --bg:#faf9f5;--bg2:#f2f0e8;--bg3:#e8e6dc;
+  --card:#ffffff;
+  --ink:#0e0e0c;--ink2:#3a3a36;--muted:#8a8880;
+  --border:rgba(14,14,12,0.1);--border2:rgba(14,14,12,0.18);
+  --green:#1a6b4a;--green-bg:rgba(26,107,74,0.08);
+  --red:#c0392b;--red-bg:rgba(192,57,43,0.08);
+  --amber:#b87a0f;--amber-bg:rgba(184,122,15,0.08);
+  --blue:#185fa5;--blue-bg:rgba(24,95,165,0.08);
+  --purple:#5b4fcf;--purple-bg:rgba(91,79,207,0.08);
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(14,14,12,0.06);
+  --shadow-lg:0 8px 32px rgba(14,14,12,0.1);
 }
-@media(prefers-color-scheme:dark){:root{
-  --bg-primary:#1e1e1c;--bg-secondary:#2a2a28;--bg-tertiary:#242422;
-  --text-primary:#e8e6de;--text-secondary:#9c9a92;--text-tertiary:#6b6963;
-  --border-tertiary:rgba(255,255,255,0.1);--border-secondary:rgba(255,255,255,0.18);--border-primary:rgba(255,255,255,0.3);
-}}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg-tertiary);color:var(--text-primary);min-height:100vh;font-size:14px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px}
 .app{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:210px;flex-shrink:0;background:var(--bg-primary);border-right:0.5px solid var(--border-tertiary);display:flex;flex-direction:column;padding:16px 0}
-.logo{padding:0 18px 22px;font-size:16px;font-weight:600;letter-spacing:-0.4px;color:var(--text-primary)}
-.logo span{color:var(--text-secondary);font-weight:400}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;cursor:pointer;color:var(--text-secondary);border-left:2px solid transparent;transition:background 0.15s,color 0.15s;user-select:none}
-.nav-item:hover{background:var(--bg-secondary);color:var(--text-primary)}
-.nav-item.active{background:var(--bg-secondary);color:var(--text-primary);border-left:2px solid var(--text-primary)}
-.nav-icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
-.nav-section{font-size:10px;font-weight:600;color:var(--text-tertiary);letter-spacing:0.8px;padding:18px 18px 6px;text-transform:uppercase}
-.main{flex:1;overflow-y:auto;overflow-x:hidden}
-.page{display:none;padding:26px}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--card);border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-top{padding:20px 16px 8px}
+.logo{font-family:'DM Serif Display',serif;font-size:19px;letter-spacing:-0.3px;color:var(--ink);margin-bottom:24px;display:block;text-decoration:none}
+.logo span{color:var(--green)}
+.nav-section{font-size:9px;font-weight:500;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:14px 16px 5px;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--muted);border-left:2px solid transparent;transition:all 0.15s;user-select:none;border-radius:0 6px 6px 0;margin:1px 8px 1px 0}
+.nav-item:hover{background:var(--bg2);color:var(--ink)}
+.nav-item.active{background:var(--bg2);color:var(--ink);border-left-color:var(--ink);font-weight:500}
+.nav-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:0.5px solid var(--border)}
+.lang-toggle{display:flex;background:var(--bg2);border-radius:20px;padding:3px;gap:2px}
+.lang-btn{flex:1;padding:5px;font-size:11px;font-weight:500;border:none;background:transparent;cursor:pointer;border-radius:16px;color:var(--muted);transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.lang-btn.active{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
+.page{display:none;padding:28px 32px;min-height:100%}
 .page.active{display:block}
-.page-title{font-size:21px;font-weight:600;margin-bottom:4px}
-.page-sub{font-size:13px;color:var(--text-secondary);margin-bottom:26px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.metric-card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:14px 16px}
-.metric-label{font-size:10px;color:var(--text-secondary);margin-bottom:7px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
-.metric-value{font-size:21px;font-weight:600;margin-bottom:3px;letter-spacing:-0.5px}
-.metric-delta{font-size:11px;color:var(--text-secondary)}
-.metric-delta.up{color:#1a7a3f}
-.metric-delta.down{color:#c0392b}
-.row{display:grid;gap:12px;margin-bottom:24px}
-.row2{grid-template-columns:1fr 1fr}
-.row3{grid-template-columns:2fr 1fr}
-.card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:18px}
-.card-title{font-size:12px;font-weight:600;margin-bottom:16px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px}
-.chart-wrap{position:relative;width:100%;height:185px}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-0.5px;margin-bottom:3px}
+.page-sub{font-size:13px;color:var(--muted)}
+
+/* GRID LAYOUTS */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px}
+.grid-3-1{display:grid;grid-template-columns:3fr 1fr;gap:14px;margin-bottom:20px}
+.mb{margin-bottom:20px}
+
+/* CARDS */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.card-sm{padding:14px 16px}
+.card-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:14px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+
+/* METRIC CARDS */
+.metric{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.metric.green::before{background:var(--green)}
+.metric.red::before{background:var(--red)}
+.metric.amber::before{background:var(--amber)}
+.metric.blue::before{background:var(--blue)}
+.metric.purple::before{background:var(--purple)}
+.m-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.m-value{font-size:22px;font-weight:500;letter-spacing:-0.5px;margin-bottom:4px;font-family:'DM Serif Display',serif}
+.m-sub{font-size:11px;color:var(--muted)}
+.m-delta{font-size:11px;font-weight:500}
+.m-delta.up{color:var(--green)}
+.m-delta.down{color:var(--red)}
+
+/* CHART WRAP */
+.chart-wrap{position:relative;width:100%}
+.chart-wrap-h200{height:200px}
+.chart-wrap-h160{height:160px}
+.chart-wrap-h220{height:220px}
+
+/* TABLES */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:10px;font-weight:600;color:var(--text-secondary);padding:6px 0;border-bottom:0.5px solid var(--border-tertiary);letter-spacing:0.4px;text-transform:uppercase}
-td{padding:10px 0;border-bottom:0.5px solid var(--border-tertiary);color:var(--text-primary)}
+th{text-align:left;font-size:10px;font-weight:500;color:var(--muted);padding:8px 0;border-bottom:0.5px solid var(--border);letter-spacing:0.5px;text-transform:uppercase}
+td{padding:11px 0;border-bottom:0.5px solid var(--border);color:var(--ink);vertical-align:middle}
 td:last-child,th:last-child{text-align:right}
 tr:last-child td{border-bottom:none}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.badge-green{background:rgba(26,122,63,0.1);color:#1a7a3f}
-.badge-red{background:rgba(192,57,43,0.1);color:#c0392b}
-.section-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.btn{padding:7px 16px;font-size:12px;font-weight:500;border:0.5px solid var(--border-secondary);border-radius:var(--radius-md);background:transparent;color:var(--text-primary);cursor:pointer;transition:background 0.15s;font-family:inherit}
-.btn:hover{background:var(--bg-secondary)}
-.btn:active{transform:scale(0.98)}
-.btn-primary{background:var(--text-primary);color:var(--bg-primary);border-color:var(--text-primary)}
-.btn-primary:hover{opacity:0.85}
+tr:hover td{background:var(--bg)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.badge-gray{background:var(--bg2);color:var(--muted)}
+
+/* BUTTONS */
+.btn{padding:8px 18px;font-size:13px;font-weight:500;border:0.5px solid var(--border2);border-radius:100px;background:transparent;color:var(--ink);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn:hover{background:var(--bg2)}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn-primary:hover{background:var(--ink2);opacity:1}
+.btn-green{background:var(--green);color:white;border-color:var(--green)}
+.btn-green:hover{opacity:0.85}
+.btn-sm{padding:5px 14px;font-size:12px}
+.btn-icon{padding:6px 10px;font-size:14px}
 .btn-group{display:flex;gap:8px;flex-wrap:wrap}
-.form-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:12px}
+
+/* FORMS */
 .form-group{display:flex;flex-direction:column;gap:5px}
-.form-label{font-size:11px;color:var(--text-secondary);font-weight:600;letter-spacing:0.2px}
-input,select{width:100%;padding:8px 10px;border:0.5px solid var(--border-secondary);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-family:inherit;transition:border-color 0.15s}
-input:focus,select:focus{outline:none;border-color:var(--border-primary);box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
-.cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
-.okr-list{display:flex;flex-direction:column;gap:12px}
-.obj-card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);overflow:hidden}
-.obj-header{padding:14px 18px;display:flex;align-items:center;gap:12px}
-.obj-title{font-size:14px;font-weight:500;flex:1}
-.obj-cycle{font-size:11px;color:var(--text-secondary);margin-top:2px}
-.obj-pct{font-size:13px;font-weight:600;min-width:36px;text-align:right}
-.progress-wrap{height:4px;background:var(--bg-secondary);border-radius:2px;flex:1;overflow:hidden}
-.progress-bar{height:100%;border-radius:2px;transition:width 0.4s ease}
-.kr-list{padding:0 18px 14px;border-top:0.5px solid var(--border-tertiary)}
-.kr-item{padding:10px 0;border-bottom:0.5px solid var(--border-tertiary)}
+.form-label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:0.2px}
+.form-row{display:grid;gap:12px;margin-bottom:14px}
+.form-row-2{grid-template-columns:1fr 1fr}
+.form-row-3{grid-template-columns:1fr 1fr 1fr}
+.form-row-4{grid-template-columns:1fr 1fr 1fr 1fr}
+input,select,textarea{width:100%;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font-size:13px;font-family:'DM Sans',sans-serif;transition:border-color 0.15s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(14,14,12,0.05)}
+select option{background:var(--card);color:var(--ink)}
+
+/* PROGRESS */
+.prog-wrap{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.prog-bar{height:100%;border-radius:3px;transition:width 0.5s ease}
+.prog-wrap-sm{height:4px}
+.prog-wrap-xs{height:3px}
+
+/* OKR */
+.okr-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px}
+.okr-header{padding:16px 20px;display:flex;align-items:center;gap:14px}
+.okr-body{padding:0 20px 16px;border-top:0.5px solid var(--border)}
+.okr-title{font-size:14px;font-weight:500;flex:1}
+.okr-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.kr-item{padding:10px 0;border-bottom:0.5px solid var(--border)}
 .kr-item:last-child{border-bottom:none}
-.kr-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.kr-name{font-size:12px;flex:1;color:var(--text-primary)}
-.kr-val{font-size:11px;color:var(--text-secondary);white-space:nowrap}
-.kr-bar-wrap{height:3px;background:var(--bg-secondary);border-radius:2px;overflow:hidden}
-.kr-bar{height:100%;border-radius:2px;transition:width 0.4s ease}
+.kr-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.kr-name{font-size:12px;flex:1}
+.kr-val{font-size:11px;color:var(--muted);white-space:nowrap}
 .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.budget-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border-tertiary)}
-.budget-row:last-child{border-bottom:none}
-.budget-label{font-size:13px;flex:1;display:flex;align-items:center;gap:6px}
-.budget-used{font-size:11px;color:var(--text-secondary);min-width:90px;text-align:right}
-.budget-bar-wrap{flex:1;height:4px;background:var(--bg-secondary);border-radius:2px;overflow:hidden;max-width:130px}
-.budget-bar{height:100%;border-radius:2px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:100;display:none;backdrop-filter:blur(2px)}
+
+/* DEBT CARDS */
+.debt-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);transition:box-shadow 0.2s}
+.debt-card:hover{box-shadow:var(--shadow-lg)}
+.debt-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.debt-entity{display:flex;align-items:center;gap:10px}
+.debt-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:white;flex-shrink:0}
+.debt-name{font-size:14px;font-weight:500}
+.debt-type-tag{font-size:10px;color:var(--muted);margin-top:2px}
+.debt-amount{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;text-align:right}
+.debt-amount-label{font-size:10px;color:var(--muted);text-align:right;margin-top:1px}
+.credit-bar-wrap{margin:12px 0 10px}
+.credit-bar-info{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+.debt-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:0.5px solid var(--border)}
+.debt-footer-item{text-align:center}
+.debt-footer-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
+.debt-footer-value{font-size:12px;font-weight:500}
+.debt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(14,14,12,0.5);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-tertiary);padding:26px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto}
-.modal-title{font-size:17px;font-weight:600;margin-bottom:20px}
-.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}
-.export-panel{background:var(--bg-secondary);border-radius:var(--radius-lg);padding:18px;margin-bottom:16px;border:0.5px solid var(--border-tertiary)}
-.export-title{font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.8px}
-.export-btns{display:flex;gap:8px;flex-wrap:wrap}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:var(--bg-primary);padding:10px 20px;border-radius:var(--radius-md);font-size:13px;opacity:0;transition:opacity 0.3s;z-index:200;pointer-events:none;font-weight:500}
-.toast.show{opacity:1}
-.preview-box{border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:22px;max-width:520px;background:var(--bg-secondary)}
-.empty-state{text-align:center;padding:44px;color:var(--text-secondary);font-size:13px}
+.modal{background:var(--card);border-radius:16px;border:0.5px solid var(--border);padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-title{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:22px;letter-spacing:-0.3px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:0.5px solid var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:var(--bg);padding:11px 22px;border-radius:100px;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all 0.3s;z-index:300;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* DIVIDER */
+.divider{height:0.5px;background:var(--border);margin:16px 0}
+
+/* SUMMARY BAND */
+.summary-band{background:var(--ink);color:white;border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.sb-item{padding:0 24px;border-right:0.5px solid rgba(255,255,255,0.1)}
+.sb-item:first-child{padding-left:0}
+.sb-item:last-child{border-right:none}
+.sb-label{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px}
+.sb-value{font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:-0.5px}
+.sb-sub{font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px}
+
+/* ENTITY CHIP */
+.entity-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:var(--bg2);font-size:12px;border:0.5px solid var(--border)}
+.entity-dot{width:8px;height:8px;border-radius:50%}
+
+/* SCORE RING */
+.score-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.score-center{position:absolute;text-align:center}
+.score-num{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-1px}
+.score-label{font-size:10px;color:var(--muted)}
+
+/* TAB */
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:20px;padding:3px;margin-bottom:20px;width:fit-content}
+.tab{padding:6px 18px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;border-radius:16px;color:var(--muted);transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.tab.active{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+/* DEBT TYPE COLORS */
+.dtype-credit{background:#3B8BD4}
+.dtype-loan{background:#1D9E75}
+.dtype-personal{background:#D4537E}
+.dtype-auto{background:#EF9F27}
+.dtype-mortgage{background:#7F77DD}
+.dtype-other{background:#888780}
+
+/* UTILIZATION INDICATOR */
+.util-low{color:var(--green)}
+.util-mid{color:var(--amber)}
+.util-high{color:var(--red)}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+
 <div class="app">
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="logo">finance<span>+okr</span></div>
-    <div class="nav-section">Finanzas</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span>Dashboard</div>
-    <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span>Transacciones</div>
-    <div class="nav-item" onclick="nav('presupuesto',this)"><span class="nav-icon">⊟</span>Presupuestos</div>
-    <div class="nav-section">Objetivos</div>
-    <div class="nav-item" onclick="nav('okr',this)"><span class="nav-icon">◎</span>OKRs</div>
-    <div class="nav-item" onclick="nav('okr-fin',this)"><span class="nav-icon">⊕</span>OKRs Financieros</div>
-    <div class="nav-section">Reportes</div>
-    <div class="nav-item" onclick="nav('exportar',this)"><span class="nav-icon">↓</span>Exportar</div>
+    <div class="sidebar-top">
+      <a class="logo" href="#">finance<span>+okr</span></a>
+      <div class="nav-section" data-t="nav_finance">Finanzas</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span><span data-t="nav_dashboard">Dashboard</span></div>
+      <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span><span data-t="nav_txns">Transacciones</span></div>
+      <div class="nav-item" onclick="nav('budget',this)"><span class="nav-icon">⊟</span><span data-t="nav_budget">Presupuestos</span></div>
+      <div class="nav-section" data-t="nav_debts_section">Deudas</div>
+      <div class="nav-item" onclick="nav('debts',this)"><span class="nav-icon">💳</span><span data-t="nav_debts">Mis deudas</span></div>
+      <div class="nav-item" onclick="nav('credit',this)"><span class="nav-icon">◈</span><span data-t="nav_credit">Crédito disponible</span></div>
+      <div class="nav-section" data-t="nav_goals_section">Objetivos</div>
+      <div class="nav-item" onclick="nav('okr',this)"><span class="nav-icon">◎</span><span data-t="nav_okr">OKRs</span></div>
+      <div class="nav-item" onclick="nav('okr-fin',this)"><span class="nav-icon">⊕</span><span data-t="nav_okr_fin">OKRs Financieros</span></div>
+      <div class="nav-section" data-t="nav_reports_section">Reportes</div>
+      <div class="nav-item" onclick="nav('export',this)"><span class="nav-icon">↓</span><span data-t="nav_export">Exportar</span></div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('es',this)">ES</button>
+        <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+        <button class="lang-btn" onclick="setLang('pt',this)">PT</button>
+      </div>
+    </div>
   </div>
+
   <div class="main">
 
-    <!-- DASHBOARD -->
+    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
     <div class="page active" id="p-dashboard">
-      <div class="page-title">Dashboard</div>
-      <div class="page-sub" id="dash-date"></div>
-      <div class="metrics" id="metrics-grid"></div>
-      <div class="row row3">
-        <div class="card">
-          <div class="section-bar"><span class="card-title" style="margin:0">Ingresos vs Gastos</span></div>
-          <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="section-bar"><span class="card-title" style="margin:0">Por categoría</span></div>
-          <div class="chart-wrap"><canvas id="chart-cat"></canvas></div>
+      <div class="page-header">
+        <div><div class="page-title" data-t="dash_title">Dashboard</div><div class="page-sub" id="dash-date"></div></div>
+        <div class="btn-group">
+          <button class="btn btn-sm" onclick="nav('export',document.querySelector('.nav-item:nth-child(12)'))">↓ <span data-t="export_btn">Exportar</span></button>
         </div>
       </div>
-      <div class="row row2">
+
+      <!-- Net worth band -->
+      <div class="summary-band" id="net-band">
+        <div class="sb-item"><div class="sb-label" data-t="sb_income">Ingresos</div><div class="sb-value" id="sb-inc">—</div><div class="sb-sub" data-t="sb_this_month">Este mes</div></div>
+        <div class="sb-item"><div class="sb-label" data-t="sb_expenses">Gastos</div><div class="sb-value" id="sb-exp">—</div><div class="sb-sub" data-t="sb_this_month">Este mes</div></div>
+        <div class="sb-item"><div class="sb-label" data-t="sb_total_debt">Deuda total</div><div class="sb-value" id="sb-debt">—</div><div class="sb-sub" data-t="sb_all_entities">Todas las entidades</div></div>
+        <div class="sb-item"><div class="sb-label" data-t="sb_net">Patrimonio neto</div><div class="sb-value" id="sb-net">—</div><div class="sb-sub" data-t="sb_balance_sub">Activos - Deudas</div></div>
+      </div>
+
+      <!-- Row 1 -->
+      <div class="grid-4">
+        <div class="metric green"><div class="m-label" data-t="m_income">Ingresos</div><div class="m-value" id="m-inc">—</div><div class="m-delta up" id="m-savings"></div></div>
+        <div class="metric red"><div class="m-label" data-t="m_expenses">Gastos</div><div class="m-value" id="m-exp">—</div><div class="m-sub" data-t="m_this_month">Este mes</div></div>
+        <div class="metric amber"><div class="m-label" data-t="m_debt">Deuda activa</div><div class="m-value" id="m-debt">—</div><div class="m-sub" id="m-debt-count"></div></div>
+        <div class="metric blue"><div class="m-label" data-t="m_credit_avail">Crédito disponible</div><div class="m-value" id="m-credit">—</div><div class="m-sub" id="m-credit-sub"></div></div>
+      </div>
+
+      <!-- Row 2: charts -->
+      <div class="grid-2-1">
         <div class="card">
-          <div class="card-title">Últimas transacciones</div>
-          <table id="dash-txn-table"></table>
+          <div class="card-header"><span class="card-title" data-t="chart_monthly">Ingresos vs Gastos</span></div>
+          <div class="chart-wrap chart-wrap-h200"><canvas id="ch-monthly"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">OKRs — resumen</div>
-          <div id="dash-okr-summary"></div>
+          <div class="card-header"><span class="card-title" data-t="chart_cat">Por categoría</span></div>
+          <div class="chart-wrap chart-wrap-h200"><canvas id="ch-cat"></canvas></div>
         </div>
+      </div>
+
+      <!-- Row 3: debt + okr -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title" data-t="debt_overview">Deudas — resumen</span><button class="btn btn-sm" onclick="nav('debts',document.querySelector('[onclick*=debts]'))" data-t="see_all">Ver todo</button></div>
+          <div id="dash-debt-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title" data-t="okr_overview">OKRs — progreso</span></div>
+          <div id="dash-okr-list"></div>
+        </div>
+      </div>
+
+      <!-- Row 4: recent txns -->
+      <div class="card mb">
+        <div class="card-header"><span class="card-title" data-t="recent_txns">Últimas transacciones</span></div>
+        <table><thead><tr><th data-t="col_date">Fecha</th><th data-t="col_desc">Descripción</th><th data-t="col_cat">Categoría</th><th data-t="col_type">Tipo</th><th data-t="col_amount">Monto</th></tr></thead>
+        <tbody id="dash-txn-body"></tbody></table>
       </div>
     </div>
 
-    <!-- TRANSACCIONES -->
+    <!-- ═══════════════════ TRANSACCIONES ═══════════════════ -->
     <div class="page" id="p-txns">
-      <div class="page-title">Transacciones</div>
-      <div class="page-sub">Registrá tus ingresos y gastos</div>
-      <div class="card" style="margin-bottom:16px">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Descripción</label><input type="text" id="txn-desc" placeholder="Ej: Supermercado"></div>
-          <div class="form-group"><label class="form-label">Monto (₲)</label><input type="number" id="txn-amount" placeholder="0" min="0"></div>
-          <div class="form-group"><label class="form-label">Categoría</label>
+      <div class="page-header">
+        <div><div class="page-title" data-t="txn_title">Transacciones</div><div class="page-sub" data-t="txn_sub">Registrá tus ingresos y gastos</div></div>
+      </div>
+      <div class="card mb">
+        <div class="card-title" data-t="add_txn">Nueva transacción</div>
+        <div class="form-row form-row-4">
+          <div class="form-group"><label class="form-label" data-t="f_desc">Descripción</label><input type="text" id="txn-desc" data-placeholder-t="f_desc_ph"></div>
+          <div class="form-group"><label class="form-label" data-t="f_amount">Monto</label><input type="number" id="txn-amount" placeholder="0" min="0"></div>
+          <div class="form-group"><label class="form-label" data-t="f_cat">Categoría</label>
             <select id="txn-cat"><option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Entretenimiento</option><option>Servicios</option><option>Educación</option><option>Ropa</option><option>Salario</option><option>Otros</option></select>
           </div>
-          <div class="form-group"><label class="form-label">Tipo</label>
-            <select id="txn-type"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select>
+          <div class="form-group"><label class="form-label" data-t="f_type">Tipo</label>
+            <select id="txn-type"><option value="gasto" data-t="opt_expense">Gasto</option><option value="ingreso" data-t="opt_income">Ingreso</option></select>
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:flex-end">
-          <div class="form-group" style="flex:1"><label class="form-label">Fecha</label><input type="date" id="txn-date"></div>
-          <button class="btn btn-primary" onclick="addTxn()">+ Agregar</button>
+        <div style="display:flex;gap:12px;align-items:flex-end">
+          <div class="form-group" style="flex:1"><label class="form-label" data-t="f_date">Fecha</label><input type="date" id="txn-date"></div>
+          <button class="btn btn-primary" onclick="addTxn()">+ <span data-t="add_btn">Agregar</span></button>
         </div>
       </div>
       <div class="card">
-        <div class="section-bar">
-          <span class="card-title" style="margin:0">Historial</span>
-          <select id="filter-cat" style="width:auto;font-size:12px;padding:5px 10px" onchange="renderTxnTable()">
-            <option value="">Todas las categorías</option><option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Entretenimiento</option><option>Servicios</option><option>Educación</option><option>Ropa</option><option>Salario</option><option>Otros</option>
+        <div class="card-header">
+          <span class="card-title" data-t="history">Historial</span>
+          <select id="filter-cat" style="width:auto;font-size:12px;padding:5px 12px;border-radius:100px" onchange="renderTxnTable()">
+            <option value="" data-t="all_cats">Todas</option>
+            <option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Entretenimiento</option><option>Servicios</option><option>Educación</option><option>Ropa</option><option>Salario</option><option>Otros</option>
           </select>
         </div>
-        <table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Monto</th></tr></thead>
-        <tbody id="txn-table-body"></tbody></table>
+        <table><thead><tr><th data-t="col_date">Fecha</th><th data-t="col_desc">Descripción</th><th data-t="col_cat">Categoría</th><th data-t="col_type">Tipo</th><th data-t="col_amount">Monto</th></tr></thead>
+        <tbody id="txn-body"></tbody></table>
       </div>
     </div>
 
-    <!-- PRESUPUESTOS -->
-    <div class="page" id="p-presupuesto">
-      <div class="page-title">Presupuestos</div>
-      <div class="page-sub">Establecé límites mensuales por categoría</div>
-      <div class="row row2">
+    <!-- ═══════════════════ PRESUPUESTO ═══════════════════ -->
+    <div class="page" id="p-budget">
+      <div class="page-header">
+        <div><div class="page-title" data-t="budget_title">Presupuestos</div><div class="page-sub" data-t="budget_sub">Límites mensuales por categoría</div></div>
+      </div>
+      <div class="grid-2">
         <div class="card">
-          <div class="card-title">Configurar límites</div>
+          <div class="card-title" data-t="budget_config">Configurar límites</div>
           <div id="budget-form"></div>
-          <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="saveBudgets()">Guardar presupuestos</button>
+          <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="saveBudgets()" data-t="save_budget">Guardar presupuestos</button>
         </div>
         <div class="card">
-          <div class="card-title">Estado del mes actual</div>
+          <div class="card-title" data-t="budget_status">Estado del mes</div>
           <div id="budget-status"></div>
         </div>
       </div>
     </div>
 
-    <!-- OKR -->
-    <div class="page" id="p-okr">
-      <div class="page-title">OKRs</div>
-      <div class="page-sub">Objetivos y resultados clave del trimestre</div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-        <button class="btn btn-primary" onclick="openObjModal()">+ Nuevo objetivo</button>
+    <!-- ═══════════════════ DEUDAS ═══════════════════ -->
+    <div class="page" id="p-debts">
+      <div class="page-header">
+        <div><div class="page-title" data-t="debts_title">Mis deudas</div><div class="page-sub" data-t="debts_sub">Todas tus obligaciones financieras en un lugar</div></div>
+        <button class="btn btn-primary" onclick="openDebtModal()">+ <span data-t="add_debt">Nueva deuda</span></button>
       </div>
-      <div class="okr-list" id="okr-list"></div>
+
+      <!-- Summary band for debts -->
+      <div class="grid-4 mb">
+        <div class="metric red"><div class="m-label" data-t="total_debt">Deuda total</div><div class="m-value" id="d-total">—</div><div class="m-sub" id="d-entities-count"></div></div>
+        <div class="metric amber"><div class="m-label" data-t="monthly_payment">Pago mensual</div><div class="m-value" id="d-monthly">—</div><div class="m-sub" data-t="min_payments">Cuotas mínimas</div></div>
+        <div class="metric blue"><div class="m-label" data-t="credit_used">Crédito usado</div><div class="m-value" id="d-used-pct">—</div><div class="m-sub" data-t="of_total_limit">del límite total</div></div>
+        <div class="metric green"><div class="m-label" data-t="credit_available">Crédito disponible</div><div class="m-value" id="d-available">—</div><div class="m-sub" data-t="cards_only">Solo tarjetas</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="filterDebtType('all',this)" data-t="tab_all">Todos</button>
+        <button class="tab" onclick="filterDebtType('credit_card',this)" data-t="tab_cards">Tarjetas</button>
+        <button class="tab" onclick="filterDebtType('bank_loan',this)" data-t="tab_loans">Préstamos</button>
+        <button class="tab" onclick="filterDebtType('personal',this)" data-t="tab_personal">Personal</button>
+        <button class="tab" onclick="filterDebtType('auto',this)" data-t="tab_auto">Automotor</button>
+        <button class="tab" onclick="filterDebtType('mortgage',this)" data-t="tab_mortgage">Hipotecario</button>
+      </div>
+
+      <div class="debt-grid" id="debt-grid"></div>
     </div>
 
-    <!-- OKR FINANCIEROS -->
-    <div class="page" id="p-okr-fin">
-      <div class="page-title">OKRs Financieros</div>
-      <div class="page-sub">Objetivos ligados directamente a tus datos reales</div>
-      <div class="okr-list" id="okr-fin-list"></div>
-    </div>
+    <!-- ═══════════════════ CRÉDITO DISPONIBLE ═══════════════════ -->
+    <div class="page" id="p-credit">
+      <div class="page-header">
+        <div><div class="page-title" data-t="credit_title">Crédito disponible</div><div class="page-sub" data-t="credit_sub">Límites, uso y disponibilidad por entidad</div></div>
+      </div>
 
-    <!-- EXPORTAR -->
-    <div class="page" id="p-exportar">
-      <div class="page-title">Exportar</div>
-      <div class="page-sub">Descargá tus datos en Excel o PDF</div>
-      <div class="row row2" style="margin-bottom:24px">
-        <div class="export-panel">
-          <div class="export-title">Excel (.xlsx)</div>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">Genera un archivo con 3 hojas: Transacciones, Resumen mensual por categoría y OKRs con progreso.</p>
-          <div class="export-btns">
-            <button class="btn btn-primary" onclick="exportExcel()">↓ Excel completo</button>
-            <button class="btn" onclick="exportExcelTxns()">↓ Solo transacciones</button>
-          </div>
+      <div class="grid-3 mb">
+        <div class="metric blue"><div class="m-label" data-t="total_limit">Límite total</div><div class="m-value" id="cr-total-limit">—</div><div class="m-sub" data-t="all_cards">Todas las tarjetas</div></div>
+        <div class="metric red"><div class="m-label" data-t="total_used">Total usado</div><div class="m-value" id="cr-total-used">—</div><div class="m-sub" id="cr-used-pct-sub"></div></div>
+        <div class="metric green"><div class="m-label" data-t="total_available">Total disponible</div><div class="m-value" id="cr-available">—</div><div class="m-sub" data-t="ready_to_use">Listo para usar</div></div>
+      </div>
+
+      <!-- Utilization chart -->
+      <div class="grid-2-1 mb">
+        <div class="card">
+          <div class="card-title" data-t="utilization_by_card">Utilización por tarjeta</div>
+          <div id="credit-bars"></div>
         </div>
-        <div class="export-panel">
-          <div class="export-title">PDF</div>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">Reporte mensual A4 con métricas, presupuestos, OKRs y últimas transacciones. Listo para imprimir o compartir.</p>
-          <div class="export-btns">
-            <button class="btn btn-primary" onclick="exportPDF()">↓ Reporte PDF</button>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+          <div class="card-title" style="text-align:center" data-t="overall_utilization">Utilización global</div>
+          <div class="score-ring">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r="56" fill="none" stroke="#f2f0e8" stroke-width="10"/>
+              <circle id="util-ring" cx="70" cy="70" r="56" fill="none" stroke="#1a6b4a" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="0 352" stroke-dashoffset="-88" transform="rotate(-90 70 70)" style="transition:stroke-dasharray 0.6s ease"/>
+            </svg>
+            <div class="score-center">
+              <div class="score-num" id="util-pct-big">—</div>
+              <div class="score-label" data-t="used">usado</div>
+            </div>
           </div>
+          <div id="util-status" style="font-size:12px;text-align:center;color:var(--muted)"></div>
         </div>
       </div>
+
+      <!-- Credit table -->
       <div class="card">
-        <div class="card-title">Vista previa del reporte</div>
-        <div id="pdf-preview"></div>
+        <div class="card-title" data-t="credit_detail">Detalle por tarjeta</div>
+        <table><thead><tr><th data-t="col_entity">Entidad</th><th data-t="col_card_type">Tipo</th><th data-t="col_limit">Límite</th><th data-t="col_used">Usado</th><th data-t="col_available">Disponible</th><th data-t="col_due_date">Vencimiento</th><th data-t="col_utilization">Utilización</th></tr></thead>
+        <tbody id="credit-table-body"></tbody></table>
       </div>
+    </div>
+
+    <!-- ═══════════════════ OKR ═══════════════════ -->
+    <div class="page" id="p-okr">
+      <div class="page-header">
+        <div><div class="page-title" data-t="okr_title">OKRs</div><div class="page-sub" data-t="okr_sub">Objetivos y resultados clave</div></div>
+        <button class="btn btn-primary" onclick="openObjModal()">+ <span data-t="new_obj">Nuevo objetivo</span></button>
+      </div>
+      <div id="okr-list"></div>
+    </div>
+
+    <!-- ═══════════════════ OKR FINANCIEROS ═══════════════════ -->
+    <div class="page" id="p-okr-fin">
+      <div class="page-header">
+        <div><div class="page-title" data-t="okrfin_title">OKRs Financieros</div><div class="page-sub" data-t="okrfin_sub">Metas ligadas a tus datos reales</div></div>
+      </div>
+      <div id="okr-fin-list"></div>
+    </div>
+
+    <!-- ═══════════════════ EXPORTAR ═══════════════════ -->
+    <div class="page" id="p-export">
+      <div class="page-header">
+        <div><div class="page-title" data-t="export_title">Exportar</div><div class="page-sub" data-t="export_sub">Descargá tus datos</div></div>
+      </div>
+      <div class="grid-2 mb">
+        <div class="card">
+          <div class="card-title">Excel (.xlsx)</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6" data-t="excel_desc">Genera un archivo con hojas: Transacciones, Resumen, Deudas y OKRs.</p>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="exportExcel()" data-t="export_full">↓ Excel completo</button>
+            <button class="btn" onclick="exportExcelTxns()" data-t="export_txns_only">↓ Solo transacciones</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">PDF</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6" data-t="pdf_desc">Reporte mensual A4 con métricas, deudas, presupuestos y OKRs.</p>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="exportPDF()" data-t="export_pdf">↓ Reporte PDF</button>
+          </div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title" data-t="preview">Vista previa</div><div id="export-preview"></div></div>
     </div>
 
   </div>
 </div>
 
-<!-- Modal nuevo objetivo -->
+<!-- ═══ MODAL: NUEVA DEUDA ═══ -->
+<div class="modal-overlay" id="debt-modal">
+  <div class="modal">
+    <div class="modal-title" data-t="modal_debt_title">Nueva deuda</div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label" data-t="f_debt_type">Tipo de deuda</label>
+        <select id="d-type" onchange="toggleDebtFields()">
+          <option value="credit_card" data-t="opt_credit_card">Tarjeta de crédito</option>
+          <option value="bank_loan" data-t="opt_bank_loan">Préstamo bancario</option>
+          <option value="personal" data-t="opt_personal_loan">Préstamo personal</option>
+          <option value="auto" data-t="opt_auto">Crédito automotor</option>
+          <option value="mortgage" data-t="opt_mortgage">Hipotecario</option>
+          <option value="other" data-t="opt_other">Otro</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label" data-t="f_entity">Entidad / Banco</label>
+        <select id="d-entity">
+          <option value="Bancop">Bancop</option>
+          <option value="Itaú">Itaú</option>
+          <option value="Santander">Santander</option>
+          <option value="BBVA">BBVA</option>
+          <option value="Bradesco">Bradesco</option>
+          <option value="Galicia">Galicia</option>
+          <option value="Naranja X">Naranja X</option>
+          <option value="Mercado Pago">Mercado Pago</option>
+          <option value="Nación">Banco Nación</option>
+          <option value="Banco Regional">Banco Regional</option>
+          <option value="Continental">Banco Continental</option>
+          <option value="GNB">GNB</option>
+          <option value="Familiar">Banco Familiar</option>
+          <option value="custom">+ Nueva entidad...</option>
+        </select>
+      </div>
+    </div>
+    <div id="custom-entity-wrap" style="display:none;margin-bottom:14px">
+      <div class="form-group"><label class="form-label" data-t="f_custom_entity">Nombre de la entidad</label><input type="text" id="d-custom-entity" data-placeholder-t="f_custom_entity_ph"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label" data-t="f_card_brand">Marca / Red</label>
+        <select id="d-brand">
+          <option value="Visa">Visa</option>
+          <option value="Mastercard">Mastercard</option>
+          <option value="Amex">American Express</option>
+          <option value="Naranja">Naranja</option>
+          <option value="Cabal">Cabal</option>
+          <option value="Diners">Diners Club</option>
+          <option value="custom_brand">+ Nueva marca...</option>
+          <option value="N/A">No aplica</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label" data-t="f_currency">Moneda</label>
+        <select id="d-currency">
+          <option value="PYG">₲ Guaraní (PYG)</option>
+          <option value="USD">$ Dólar (USD)</option>
+          <option value="ARS">$ Peso AR (ARS)</option>
+          <option value="BRL">R$ Real (BRL)</option>
+          <option value="CLP">$ Peso CL (CLP)</option>
+          <option value="COP">$ Peso CO (COP)</option>
+          <option value="MXN">$ Peso MX (MXN)</option>
+        </select>
+      </div>
+    </div>
+    <div id="custom-brand-wrap" style="display:none;margin-bottom:14px">
+      <div class="form-group"><label class="form-label" data-t="f_custom_brand">Nombre de la marca</label><input type="text" id="d-custom-brand"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label" data-t="f_balance">Saldo pendiente</label><input type="number" id="d-balance" placeholder="0" min="0"></div>
+      <div class="form-group" id="d-limit-wrap"><label class="form-label" data-t="f_limit">Límite de crédito</label><input type="number" id="d-limit" placeholder="0" min="0"></div>
+    </div>
+    <div class="form-row form-row-3">
+      <div class="form-group"><label class="form-label" data-t="f_monthly">Cuota mensual</label><input type="number" id="d-monthly-pay" placeholder="0" min="0"></div>
+      <div class="form-group" id="d-due-wrap"><label class="form-label" data-t="f_due_date">Fecha de cierre</label><input type="date" id="d-due"></div>
+      <div class="form-group"><label class="form-label" data-t="f_interest">Tasa anual (%)</label><input type="number" id="d-rate" placeholder="0" min="0" step="0.1"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label" data-t="f_notes">Notas</label><input type="text" id="d-notes" data-placeholder-t="f_notes_ph"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDebtModal()" data-t="cancel">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDebt()" data-t="save">Guardar deuda</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: NUEVO OKR ═══ -->
 <div class="modal-overlay" id="obj-modal">
   <div class="modal">
-    <div class="modal-title">Nuevo objetivo</div>
-    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Título del objetivo</label><input type="text" id="new-obj-title" placeholder="Ej: Mejorar salud financiera este trimestre"></div>
-    <div class="form-group" style="margin-bottom:16px"><label class="form-label">Ciclo</label>
+    <div class="modal-title" data-t="modal_obj_title">Nuevo objetivo</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label" data-t="f_obj_title">Objetivo</label><input type="text" id="new-obj-title" data-placeholder-t="f_obj_ph"></div>
+    <div class="form-group" style="margin-bottom:16px"><label class="form-label" data-t="f_cycle">Ciclo</label>
       <select id="new-obj-cycle"><option>Q1 2025</option><option>Q2 2025</option><option>Q3 2025</option><option selected>Q4 2025</option><option>Q1 2026</option><option>Q2 2026</option></select>
     </div>
-    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;letter-spacing:0.3px;text-transform:uppercase">Key Results</div>
+    <div style="font-size:10px;font-weight:500;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px" data-t="key_results">Key Results</div>
     <div id="kr-inputs"></div>
-    <button class="btn" style="width:100%;margin-top:10px;font-size:12px" onclick="addKRInput()">+ Agregar KR</button>
+    <button class="btn" style="width:100%;margin-top:10px;font-size:12px" onclick="addKRInput()">+ <span data-t="add_kr">Agregar KR</span></button>
     <div class="modal-footer">
-      <button class="btn" onclick="closeObjModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveObj()">Guardar objetivo</button>
+      <button class="btn" onclick="closeObjModal()" data-t="cancel">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveObj()" data-t="save_obj">Guardar objetivo</button>
     </div>
   </div>
 </div>
 
-<!-- SheetJS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Chart.js -->
+<!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
-// ─── CONSTANTES ──────────────────────────────────────────────────
-const CATS=['Alimentación','Transporte','Salud','Entretenimiento','Servicios','Educación','Ropa','Salario','Otros'];
-const CAT_COLORS={
-  'Alimentación':'#3B8BD4','Transporte':'#EF9F27','Salud':'#1D9E75',
-  'Entretenimiento':'#D4537E','Servicios':'#7F77DD','Educación':'#D85A30',
-  'Ropa':'#BA7517','Salario':'#639922','Otros':'#888780'
+// ══════════════════════════════════════════════
+// I18N
+// ══════════════════════════════════════════════
+const TRANSLATIONS = {
+  es: {
+    nav_finance:'Finanzas', nav_dashboard:'Dashboard', nav_txns:'Transacciones',
+    nav_budget:'Presupuestos', nav_debts_section:'Deudas', nav_debts:'Mis deudas',
+    nav_credit:'Crédito disponible', nav_goals_section:'Objetivos', nav_okr:'OKRs',
+    nav_okr_fin:'OKRs Financieros', nav_reports_section:'Reportes', nav_export:'Exportar',
+    dash_title:'Dashboard', export_btn:'Exportar',
+    sb_income:'Ingresos', sb_expenses:'Gastos', sb_total_debt:'Deuda total',
+    sb_net:'Patrimonio neto', sb_this_month:'Este mes', sb_all_entities:'Todas las entidades', sb_balance_sub:'Activos - Deudas',
+    m_income:'Ingresos', m_expenses:'Gastos', m_this_month:'Este mes',
+    m_debt:'Deuda activa', m_credit_avail:'Crédito disponible',
+    chart_monthly:'Ingresos vs Gastos', chart_cat:'Por categoría',
+    debt_overview:'Deudas — resumen', see_all:'Ver todo', okr_overview:'OKRs — progreso',
+    recent_txns:'Últimas transacciones',
+    col_date:'Fecha', col_desc:'Descripción', col_cat:'Categoría', col_type:'Tipo', col_amount:'Monto',
+    col_entity:'Entidad', col_card_type:'Tipo', col_limit:'Límite', col_used:'Usado',
+    col_available:'Disponible', col_due_date:'Vencimiento', col_utilization:'Utilización',
+    txn_title:'Transacciones', txn_sub:'Registrá tus ingresos y gastos',
+    add_txn:'Nueva transacción', f_desc:'Descripción', f_desc_ph:'Ej: Supermercado',
+    f_amount:'Monto', f_cat:'Categoría', f_type:'Tipo', f_date:'Fecha',
+    opt_expense:'Gasto', opt_income:'Ingreso', add_btn:'Agregar',
+    history:'Historial', all_cats:'Todas',
+    budget_title:'Presupuestos', budget_sub:'Límites mensuales por categoría',
+    budget_config:'Configurar límites', save_budget:'Guardar presupuestos', budget_status:'Estado del mes',
+    debts_title:'Mis deudas', debts_sub:'Todas tus obligaciones financieras en un lugar',
+    add_debt:'Nueva deuda', total_debt:'Deuda total', monthly_payment:'Pago mensual',
+    min_payments:'Cuotas mínimas', credit_used:'Crédito usado', of_total_limit:'del límite total',
+    credit_available:'Crédito disponible', cards_only:'Solo tarjetas',
+    tab_all:'Todos', tab_cards:'Tarjetas', tab_loans:'Préstamos',
+    tab_personal:'Personal', tab_auto:'Automotor', tab_mortgage:'Hipotecario',
+    credit_title:'Crédito disponible', credit_sub:'Límites, uso y disponibilidad por entidad',
+    total_limit:'Límite total', all_cards:'Todas las tarjetas', total_used:'Total usado',
+    total_available:'Total disponible', ready_to_use:'Listo para usar',
+    utilization_by_card:'Utilización por tarjeta', overall_utilization:'Utilización global', used:'usado',
+    credit_detail:'Detalle por tarjeta',
+    okr_title:'OKRs', okr_sub:'Objetivos y resultados clave', new_obj:'Nuevo objetivo',
+    okrfin_title:'OKRs Financieros', okrfin_sub:'Metas ligadas a tus datos reales',
+    export_title:'Exportar', export_sub:'Descargá tus datos',
+    excel_desc:'Genera un archivo con hojas: Transacciones, Resumen, Deudas y OKRs.',
+    pdf_desc:'Reporte mensual A4 con métricas, deudas, presupuestos y OKRs.',
+    export_full:'↓ Excel completo', export_txns_only:'↓ Solo transacciones', export_pdf:'↓ Reporte PDF',
+    preview:'Vista previa',
+    modal_debt_title:'Nueva deuda', f_debt_type:'Tipo de deuda',
+    opt_credit_card:'Tarjeta de crédito', opt_bank_loan:'Préstamo bancario',
+    opt_personal_loan:'Préstamo personal', opt_auto:'Crédito automotor',
+    opt_mortgage:'Hipotecario', opt_other:'Otro',
+    f_entity:'Entidad / Banco', f_custom_entity:'Nombre de la entidad', f_custom_entity_ph:'Ej: Banco XYZ',
+    f_card_brand:'Marca / Red', f_currency:'Moneda',
+    f_custom_brand:'Nombre de la marca', f_balance:'Saldo pendiente',
+    f_limit:'Límite de crédito', f_monthly:'Cuota mensual',
+    f_due_date:'Fecha de cierre', f_interest:'Tasa anual (%)',
+    f_notes:'Notas', f_notes_ph:'Opcional',
+    cancel:'Cancelar', save:'Guardar deuda',
+    modal_obj_title:'Nuevo objetivo', f_obj_title:'Objetivo',
+    f_obj_ph:'Ej: Mejorar salud financiera', f_cycle:'Ciclo',
+    key_results:'Key Results', add_kr:'Agregar KR', save_obj:'Guardar objetivo',
+    debt_type_credit_card:'Tarjeta de crédito', debt_type_bank_loan:'Préstamo bancario',
+    debt_type_personal:'Préstamo personal', debt_type_auto:'Crédito automotor',
+    debt_type_mortgage:'Hipotecario', debt_type_other:'Otro',
+    balance_label:'Saldo', limit_label:'Límite', available_label:'Disponible',
+    monthly_label:'Cuota', due_label:'Cierre', rate_label:'Tasa',
+    no_debts:'No hay deudas registradas. Agregá tu primera deuda.',
+    util_low_msg:'Excelente — utilización saludable (< 30%)',
+    util_mid_msg:'Atención — utilización moderada (30-70%)',
+    util_high_msg:'Alerta — utilización alta (> 70%)',
+    this_month:'este mes', saving_rate:'tasa de ahorro',
+  },
+  en: {
+    nav_finance:'Finance', nav_dashboard:'Dashboard', nav_txns:'Transactions',
+    nav_budget:'Budgets', nav_debts_section:'Debts', nav_debts:'My debts',
+    nav_credit:'Available credit', nav_goals_section:'Goals', nav_okr:'OKRs',
+    nav_okr_fin:'Financial OKRs', nav_reports_section:'Reports', nav_export:'Export',
+    dash_title:'Dashboard', export_btn:'Export',
+    sb_income:'Income', sb_expenses:'Expenses', sb_total_debt:'Total debt',
+    sb_net:'Net worth', sb_this_month:'This month', sb_all_entities:'All entities', sb_balance_sub:'Assets - Debts',
+    m_income:'Income', m_expenses:'Expenses', m_this_month:'This month',
+    m_debt:'Active debt', m_credit_avail:'Available credit',
+    chart_monthly:'Income vs Expenses', chart_cat:'By category',
+    debt_overview:'Debts — overview', see_all:'See all', okr_overview:'OKRs — progress',
+    recent_txns:'Recent transactions',
+    col_date:'Date', col_desc:'Description', col_cat:'Category', col_type:'Type', col_amount:'Amount',
+    col_entity:'Entity', col_card_type:'Type', col_limit:'Limit', col_used:'Used',
+    col_available:'Available', col_due_date:'Due date', col_utilization:'Utilization',
+    txn_title:'Transactions', txn_sub:'Record your income and expenses',
+    add_txn:'New transaction', f_desc:'Description', f_desc_ph:'E.g.: Grocery store',
+    f_amount:'Amount', f_cat:'Category', f_type:'Type', f_date:'Date',
+    opt_expense:'Expense', opt_income:'Income', add_btn:'Add',
+    history:'History', all_cats:'All',
+    budget_title:'Budgets', budget_sub:'Monthly limits by category',
+    budget_config:'Configure limits', save_budget:'Save budgets', budget_status:'Month status',
+    debts_title:'My debts', debts_sub:'All your financial obligations in one place',
+    add_debt:'New debt', total_debt:'Total debt', monthly_payment:'Monthly payment',
+    min_payments:'Minimum payments', credit_used:'Credit used', of_total_limit:'of total limit',
+    credit_available:'Available credit', cards_only:'Cards only',
+    tab_all:'All', tab_cards:'Cards', tab_loans:'Loans',
+    tab_personal:'Personal', tab_auto:'Auto', tab_mortgage:'Mortgage',
+    credit_title:'Available credit', credit_sub:'Limits, usage and availability by entity',
+    total_limit:'Total limit', all_cards:'All cards', total_used:'Total used',
+    total_available:'Total available', ready_to_use:'Ready to use',
+    utilization_by_card:'Utilization by card', overall_utilization:'Overall utilization', used:'used',
+    credit_detail:'Detail by card',
+    okr_title:'OKRs', okr_sub:'Objectives and key results', new_obj:'New objective',
+    okrfin_title:'Financial OKRs', okrfin_sub:'Goals linked to your real data',
+    export_title:'Export', export_sub:'Download your data',
+    excel_desc:'Generates a file with sheets: Transactions, Summary, Debts and OKRs.',
+    pdf_desc:'Monthly A4 report with metrics, debts, budgets and OKRs.',
+    export_full:'↓ Full Excel', export_txns_only:'↓ Transactions only', export_pdf:'↓ PDF Report',
+    preview:'Preview',
+    modal_debt_title:'New debt', f_debt_type:'Debt type',
+    opt_credit_card:'Credit card', opt_bank_loan:'Bank loan',
+    opt_personal_loan:'Personal loan', opt_auto:'Auto loan',
+    opt_mortgage:'Mortgage', opt_other:'Other',
+    f_entity:'Entity / Bank', f_custom_entity:'Entity name', f_custom_entity_ph:'E.g.: XYZ Bank',
+    f_card_brand:'Brand / Network', f_currency:'Currency',
+    f_custom_brand:'Brand name', f_balance:'Outstanding balance',
+    f_limit:'Credit limit', f_monthly:'Monthly payment',
+    f_due_date:'Closing date', f_interest:'Annual rate (%)',
+    f_notes:'Notes', f_notes_ph:'Optional',
+    cancel:'Cancel', save:'Save debt',
+    modal_obj_title:'New objective', f_obj_title:'Objective',
+    f_obj_ph:'E.g.: Improve financial health', f_cycle:'Cycle',
+    key_results:'Key Results', add_kr:'Add KR', save_obj:'Save objective',
+    debt_type_credit_card:'Credit card', debt_type_bank_loan:'Bank loan',
+    debt_type_personal:'Personal loan', debt_type_auto:'Auto loan',
+    debt_type_mortgage:'Mortgage', debt_type_other:'Other',
+    balance_label:'Balance', limit_label:'Limit', available_label:'Available',
+    monthly_label:'Payment', due_label:'Due', rate_label:'Rate',
+    no_debts:'No debts registered. Add your first debt.',
+    util_low_msg:'Excellent — healthy utilization (< 30%)',
+    util_mid_msg:'Attention — moderate utilization (30-70%)',
+    util_high_msg:'Alert — high utilization (> 70%)',
+    this_month:'this month', saving_rate:'saving rate',
+  }
+  ,pt: {
+    nav_finance:'Finanças', nav_dashboard:'Dashboard', nav_txns:'Transações',
+    nav_budget:'Orçamentos', nav_debts_section:'Dívidas', nav_debts:'Minhas dívidas',
+    nav_credit:'Crédito disponível', nav_goals_section:'Objetivos', nav_okr:'OKRs',
+    nav_okr_fin:'OKRs Financeiros', nav_reports_section:'Relatórios', nav_export:'Exportar',
+    dash_title:'Dashboard', export_btn:'Exportar',
+    sb_income:'Receitas', sb_expenses:'Despesas', sb_total_debt:'Dívida total',
+    sb_net:'Patrimônio líquido', sb_this_month:'Este mês', sb_all_entities:'Todas as entidades', sb_balance_sub:'Ativos - Dívidas',
+    m_income:'Receitas', m_expenses:'Despesas', m_this_month:'Este mês',
+    m_debt:'Dívida ativa', m_credit_avail:'Crédito disponível',
+    chart_monthly:'Receitas vs Despesas', chart_cat:'Por categoria',
+    debt_overview:'Dívidas — resumo', see_all:'Ver tudo', okr_overview:'OKRs — progresso',
+    recent_txns:'Últimas transações',
+    col_date:'Data', col_desc:'Descrição', col_cat:'Categoria', col_type:'Tipo', col_amount:'Valor',
+    col_entity:'Entidade', col_card_type:'Tipo', col_limit:'Limite', col_used:'Usado',
+    col_available:'Disponível', col_due_date:'Vencimento', col_utilization:'Utilização',
+    txn_title:'Transações', txn_sub:'Registre suas receitas e despesas',
+    add_txn:'Nova transação', f_desc:'Descrição', f_desc_ph:'Ex: Supermercado',
+    f_amount:'Valor', f_cat:'Categoria', f_type:'Tipo', f_date:'Data',
+    opt_expense:'Despesa', opt_income:'Receita', add_btn:'Adicionar',
+    history:'Histórico', all_cats:'Todas',
+    budget_title:'Orçamentos', budget_sub:'Limites mensais por categoria',
+    budget_config:'Configurar limites', save_budget:'Salvar orçamentos', budget_status:'Status do mês',
+    debts_title:'Minhas dívidas', debts_sub:'Todas as suas obrigações financeiras em um lugar',
+    add_debt:'Nova dívida', total_debt:'Dívida total', monthly_payment:'Pagamento mensal',
+    min_payments:'Parcelas mínimas', credit_used:'Crédito usado', of_total_limit:'do limite total',
+    credit_available:'Crédito disponível', cards_only:'Só cartões',
+    tab_all:'Todos', tab_cards:'Cartões', tab_loans:'Empréstimos',
+    tab_personal:'Pessoal', tab_auto:'Automóvel', tab_mortgage:'Hipoteca',
+    credit_title:'Crédito disponível', credit_sub:'Limites, uso e disponibilidade por entidade',
+    total_limit:'Limite total', all_cards:'Todos os cartões', total_used:'Total usado',
+    total_available:'Total disponível', ready_to_use:'Pronto para usar',
+    utilization_by_card:'Utilização por cartão', overall_utilization:'Utilização global', used:'usado',
+    credit_detail:'Detalhe por cartão',
+    okr_title:'OKRs', okr_sub:'Objetivos e resultados-chave', new_obj:'Novo objetivo',
+    okrfin_title:'OKRs Financeiros', okrfin_sub:'Metas vinculadas aos seus dados reais',
+    export_title:'Exportar', export_sub:'Baixe seus dados',
+    excel_desc:'Gera um arquivo com planilhas: Transações, Resumo, Dívidas e OKRs.',
+    pdf_desc:'Relatório mensal A4 com métricas, dívidas, orçamentos e OKRs.',
+    export_full:'↓ Excel completo', export_txns_only:'↓ Só transações', export_pdf:'↓ Relatório PDF',
+    preview:'Pré-visualização',
+    modal_debt_title:'Nova dívida', f_debt_type:'Tipo de dívida',
+    opt_credit_card:'Cartão de crédito', opt_bank_loan:'Empréstimo bancário',
+    opt_personal_loan:'Empréstimo pessoal', opt_auto:'Crédito automotivo',
+    opt_mortgage:'Hipoteca', opt_other:'Outro',
+    f_entity:'Entidade / Banco', f_custom_entity:'Nome da entidade', f_custom_entity_ph:'Ex: Banco XYZ',
+    f_card_brand:'Bandeira / Rede', f_currency:'Moeda',
+    f_custom_brand:'Nome da bandeira', f_balance:'Saldo devedor',
+    f_limit:'Limite de crédito', f_monthly:'Parcela mensal',
+    f_due_date:'Data de fechamento', f_interest:'Taxa anual (%)',
+    f_notes:'Observações', f_notes_ph:'Opcional',
+    cancel:'Cancelar', save:'Salvar dívida',
+    modal_obj_title:'Novo objetivo', f_obj_title:'Objetivo',
+    f_obj_ph:'Ex: Melhorar saúde financeira', f_cycle:'Ciclo',
+    key_results:'Resultados-chave', add_kr:'Adicionar KR', save_obj:'Salvar objetivo',
+    debt_type_credit_card:'Cartão de crédito', debt_type_bank_loan:'Empréstimo bancário',
+    debt_type_personal:'Empréstimo pessoal', debt_type_auto:'Crédito automotivo',
+    debt_type_mortgage:'Hipoteca', debt_type_other:'Outro',
+    balance_label:'Saldo', limit_label:'Limite', available_label:'Disponível',
+    monthly_label:'Parcela', due_label:'Fechamento', rate_label:'Taxa',
+    no_debts:'Nenhuma dívida registrada. Adicione sua primeira dívida.',
+    util_low_msg:'Excelente — utilização saudável (< 30%)',
+    util_mid_msg:'Atenção — utilização moderada (30-70%)',
+    util_high_msg:'Alerta — utilização alta (> 70%)',
+    this_month:'este mês', saving_rate:'taxa de poupança',
+  }
 };
-
-// ─── ESTADO ──────────────────────────────────────────────────────
-let txns=[], budgets={}, objectives=[], krCount=0;
-let monthlyChart=null, catChart=null;
-
-// ─── HELPERS ─────────────────────────────────────────────────────
-const fmt = n => '₲ ' + Math.round(n).toLocaleString('es-PY');
-const fmtNum = n => Math.round(n).toLocaleString('es-PY');
-const pad = n => String(n).padStart(2,'0');
-
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
+let lang = 'es';
+function t(key){ return (TRANSLATIONS[lang][key]) || TRANSLATIONS['es'][key] || key; }
+function setLang(l, el){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.documentElement.lang = l;
+  applyTranslations();
+  const active = document.querySelector('.page.active');
+  if(active) {
+    const id = active.id.replace('p-','');
+    refreshPage(id);
+  }
 }
-
-function getThisMonthTxns(){
-  const now=new Date();
-  return txns.filter(t=>{
-    const d=new Date(t.date);
-    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+function applyTranslations(){
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key = el.getAttribute('data-t');
+    if(el.tagName==='OPTION') el.textContent = t(key);
+    else el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-placeholder-t]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-placeholder-t'));
   });
 }
-
-function getObjPct(o){
-  if(!o.krs.length) return 0;
-  return Math.round(o.krs.reduce((s,kr)=>s+Math.min(100,kr.current/kr.target*100),0)/o.krs.length);
+function refreshPage(id){
+  if(id==='dashboard') renderDashboard();
+  if(id==='txns') renderTxnTable();
+  if(id==='budget') renderBudget();
+  if(id==='debts') renderDebts();
+  if(id==='credit') renderCredit();
+  if(id==='okr') renderOKR();
+  if(id==='okr-fin') renderOKRFin();
+  if(id==='export') renderExportPreview();
 }
 
-function pctColor(p){ return p>=70?'#1D9E75':p>=40?'#EF9F27':'#D85A30'; }
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const CATS = ['Alimentación','Transporte','Salud','Entretenimiento','Servicios','Educación','Ropa','Salario','Otros'];
+const CAT_COLORS = {'Alimentación':'#3B8BD4','Transporte':'#EF9F27','Salud':'#1D9E75','Entretenimiento':'#D4537E','Servicios':'#7F77DD','Educación':'#D85A30','Ropa':'#BA7517','Salario':'#639922','Otros':'#888780'};
+const DTYPE_CLASS = {credit_card:'dtype-credit',bank_loan:'dtype-loan',personal:'dtype-personal',auto:'dtype-auto',mortgage:'dtype-mortgage',other:'dtype-other'};
+const ENTITY_COLORS = {'Bancop':'#1a6b4a','Itaú':'#FF6B00','Santander':'#EC0000','BBVA':'#004B9C','Bradesco':'#CC092F','Galicia':'#E31A1B','Naranja X':'#FF6B00','Mercado Pago':'#009EE3','Nación':'#009B48','Banco Regional':'#1a3a6b','Continental':'#003087','GNB':'#6B1A6B','Familiar':'#1a6b3a'};
+let txns=[], budgets={}, objectives=[], debts=[], krCount=0, debtFilter='all';
+let monthlyChart=null, catChart=null;
 
-// ─── DATOS INICIALES ─────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+const pad = n => String(n).padStart(2,'0');
+function fmt(n, currency='PYG'){
+  const symbols={'PYG':'₲','USD':'$','ARS':'$','BRL':'R$','CLP':'$','COP':'$','MXN':'$'};
+  const s = symbols[currency]||'';
+  return s+' '+Math.round(Math.abs(n)).toLocaleString('es-PY');
+}
+function fmtN(n){ return Math.round(n).toLocaleString('es-PY'); }
+function pctColor(p){ return p>=70?'#1D9E75':p>=40?'#EF9F27':'#D85A30'; }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2800); }
+function getMonthTxns(){ const now=new Date(); return txns.filter(t=>{const d=new Date(t.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}); }
+function getObjPct(o){ if(!o.krs.length)return 0; return Math.round(o.krs.reduce((s,kr)=>s+Math.min(100,kr.current/kr.target*100),0)/o.krs.length); }
+function getEntityColor(name){ return ENTITY_COLORS[name]||'#'+Math.abs(name.split('').reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,0)).toString(16).slice(0,6).padStart(6,'a'); }
+function initials(name){ return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+// ══════════════════════════════════════════════
+// INIT DATA
+// ══════════════════════════════════════════════
 function initData(){
   const now=new Date(), m=now.getMonth()+1, y=now.getFullYear();
   txns=[
     {id:1,desc:'Salario mensual',amount:5800000,cat:'Salario',type:'ingreso',date:`${y}-${pad(m)}-01`},
-    {id:2,desc:'Supermercado Stock',amount:850000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-03`},
+    {id:2,desc:'Supermercado',amount:850000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-03`},
     {id:3,desc:'Uber',amount:45000,cat:'Transporte',type:'gasto',date:`${y}-${pad(m)}-04`},
     {id:4,desc:'Netflix + Spotify',amount:120000,cat:'Entretenimiento',type:'gasto',date:`${y}-${pad(m)}-05`},
     {id:5,desc:'Farmacia',amount:65000,cat:'Salud',type:'gasto',date:`${y}-${pad(m)}-07`},
     {id:6,desc:'Agua y luz',amount:210000,cat:'Servicios',type:'gasto',date:`${y}-${pad(m)}-08`},
-    {id:7,desc:'Restaurante familiar',amount:95000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-10`},
+    {id:7,desc:'Restaurante',amount:95000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-10`},
     {id:8,desc:'Curso online',amount:180000,cat:'Educación',type:'gasto',date:`${y}-${pad(m)}-12`},
     {id:9,desc:'Freelance diseño',amount:1200000,cat:'Salario',type:'ingreso',date:`${y}-${pad(m)}-14`},
     {id:10,desc:'Verdulería',amount:55000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-15`},
   ];
   budgets={Alimentación:1200000,Transporte:300000,Salud:200000,Entretenimiento:200000,Servicios:250000,Educación:300000,Ropa:150000,Otros:150000};
   objectives=[
-    {id:1,title:'Reducir gastos variables en 20%',cycle:'Q4 2025',krs:[
-      {name:'Bajar entretenimiento a ₲150k/mes',current:120000,target:150000},
-      {name:'Máx 2 salidas a restaurantes por semana',current:6,target:8},
+    {id:1,title:'Reducir gastos variables 20%',cycle:'Q4 2025',krs:[
+      {name:'Bajar entretenimiento a 150k/mes',current:120000,target:150000},
+      {name:'Máx 2 salidas/semana',current:6,target:8},
     ]},
     {id:2,title:'Construir fondo de emergencia',cycle:'Q1 2026',krs:[
-      {name:'Ahorrar ₲500k mensuales',current:320000,target:500000},
-      {name:'Llegar a ₲3M en cuenta de ahorro',current:1200000,target:3000000},
+      {name:'Ahorrar 500k mensuales',current:320000,target:500000},
+      {name:'Llegar a 3M en ahorro',current:1200000,target:3000000},
     ]},
+  ];
+  debts=[
+    {id:1,type:'credit_card',entity:'Itaú',brand:'Visa',currency:'PYG',balance:2800000,limit:8000000,monthlyPay:280000,dueDate:'2026-04-25',rate:32,notes:''},
+    {id:2,type:'credit_card',entity:'Santander',brand:'Mastercard',currency:'PYG',balance:1200000,limit:5000000,monthlyPay:120000,dueDate:'2026-04-18',rate:28,notes:''},
+    {id:3,type:'bank_loan',entity:'Bancop',brand:'N/A',currency:'PYG',balance:15000000,limit:0,monthlyPay:750000,dueDate:'2027-12-01',rate:18,notes:'Préstamo personal 36 cuotas'},
+    {id:4,type:'personal',entity:'Familiar',brand:'N/A',currency:'PYG',balance:2000000,limit:0,monthlyPay:500000,dueDate:'2026-08-01',rate:0,notes:'Dinero prestado de familiar'},
+    {id:5,type:'auto',entity:'Continental',brand:'N/A',currency:'PYG',balance:22000000,limit:0,monthlyPay:980000,dueDate:'2029-03-01',rate:14,notes:'Toyota Yaris 2022'},
   ];
 }
 
-// ─── NAVEGACIÓN ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
 function nav(p, el){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('p-'+p).classList.add('active');
-  el.classList.add('active');
-  if(p==='dashboard') renderDashboard();
-  if(p==='txns') renderTxnTable();
-  if(p==='presupuesto') renderBudget();
-  if(p==='okr') renderOKR();
-  if(p==='okr-fin') renderOKRFin();
-  if(p==='exportar') renderExportPreview();
+  if(el) el.classList.add('active');
+  refreshPage(p);
 }
 
-// ─── DASHBOARD ───────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
 function renderDashboard(){
   const now=new Date();
-  document.getElementById('dash-date').textContent=now.toLocaleDateString('es-PY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const mt=getThisMonthTxns();
-  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
-  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
-  const balance=ingresos-gastos;
-  const ahorro=ingresos>0?Math.round(balance/ingresos*100):0;
+  const locale=lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY';
+  document.getElementById('dash-date').textContent = now.toLocaleDateString(locale,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const mt=getMonthTxns();
+  const inc=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const exp=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const totalDebt=debts.reduce((s,d)=>s+d.balance,0);
+  const creditCards=debts.filter(d=>d.type==='credit_card');
+  const totalLimit=creditCards.reduce((s,d)=>s+d.limit,0);
+  const totalUsed=creditCards.reduce((s,d)=>s+d.balance,0);
+  const totalAvail=totalLimit-totalUsed;
+  const savings=inc>0?Math.round((inc-exp)/inc*100):0;
 
-  document.getElementById('metrics-grid').innerHTML=`
-    <div class="metric-card"><div class="metric-label">Ingresos</div><div class="metric-value" style="color:#1a7a3f">${fmt(ingresos)}</div><div class="metric-delta">Este mes</div></div>
-    <div class="metric-card"><div class="metric-label">Gastos</div><div class="metric-value" style="color:#c0392b">${fmt(gastos)}</div><div class="metric-delta">Este mes</div></div>
-    <div class="metric-card"><div class="metric-label">Balance</div><div class="metric-value">${fmt(balance)}</div><div class="metric-delta ${balance>=0?'up':'down'}">${balance>=0?'▲ Positivo':'▼ Negativo'}</div></div>
-    <div class="metric-card"><div class="metric-label">Tasa de ahorro</div><div class="metric-value">${ahorro}%</div><div class="metric-delta">del ingreso mensual</div></div>
-  `;
+  // Summary band
+  document.getElementById('sb-inc').textContent=fmt(inc);
+  document.getElementById('sb-exp').textContent=fmt(exp);
+  document.getElementById('sb-debt').textContent=fmt(totalDebt);
+  document.getElementById('sb-net').textContent=fmt(inc-exp-totalDebt);
 
-  // Gráfico barras mensual
-  const labels=[], gastosMes=[], ingresosMes=[];
+  // Metrics
+  document.getElementById('m-inc').textContent=fmt(inc);
+  document.getElementById('m-savings').textContent=savings+'% '+t('saving_rate');
+  document.getElementById('m-exp').textContent=fmt(exp);
+  document.getElementById('m-debt').textContent=fmt(totalDebt);
+  document.getElementById('m-debt-count').textContent=debts.length+' '+(lang==='en'?'obligations':lang==='pt'?'obrigações':'obligaciones');
+  document.getElementById('m-credit').textContent=fmt(totalAvail);
+  document.getElementById('m-credit-sub').textContent=(totalLimit>0?Math.round(totalUsed/totalLimit*100):0)+'% '+(lang==='en'?'used':'usado');
+
+  // Charts
+  const labels=[], expArr=[], incArr=[];
   for(let i=4;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    labels.push(d.toLocaleDateString('es-PY',{month:'short'}));
+    labels.push(d.toLocaleDateString(lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY',{month:'short'}));
     const mt2=txns.filter(t=>{const td=new Date(t.date);return td.getMonth()===d.getMonth()&&td.getFullYear()===d.getFullYear()});
-    gastosMes.push(mt2.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0));
-    ingresosMes.push(mt2.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0));
+    expArr.push(mt2.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0));
+    incArr.push(mt2.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0));
   }
   if(monthlyChart) monthlyChart.destroy();
-  monthlyChart=new Chart(document.getElementById('chart-monthly'),{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Ingresos',data:ingresosMes,backgroundColor:'rgba(39,122,74,0.22)',borderColor:'rgba(39,122,74,0.65)',borderWidth:1,borderRadius:4},
-      {label:'Gastos',data:gastosMes,backgroundColor:'rgba(192,57,43,0.18)',borderColor:'rgba(192,57,43,0.55)',borderWidth:1,borderRadius:4}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},
-        y:{grid:{color:'rgba(128,128,128,0.08)'},ticks:{font:{size:10},color:'#888',callback:v=>v>=1000000?'₲'+(v/1000000).toFixed(1)+'M':'₲'+(v/1000).toFixed(0)+'k'}}}}
-  });
+  monthlyChart=new Chart(document.getElementById('ch-monthly'),{type:'bar',data:{labels,datasets:[
+    {label:t('m_income'),data:incArr,backgroundColor:'rgba(26,107,74,0.2)',borderColor:'rgba(26,107,74,0.6)',borderWidth:1,borderRadius:4},
+    {label:t('m_expenses'),data:expArr,backgroundColor:'rgba(192,57,43,0.15)',borderColor:'rgba(192,57,43,0.5)',borderWidth:1,borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},y:{grid:{color:'rgba(128,128,128,0.07)'},ticks:{font:{size:10},color:'#888',callback:v=>v>=1000000?'₲'+(v/1000000).toFixed(1)+'M':'₲'+(v/1000).toFixed(0)+'k'}}}}});
 
-  // Gráfico donut categorías
-  const catTotals={};
-  mt.filter(t=>t.type==='gasto').forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount});
-  const cL=Object.keys(catTotals), cD=Object.values(catTotals), cC=cL.map(c=>CAT_COLORS[c]||'#888');
+  const catT={};
+  mt.filter(t=>t.type==='gasto').forEach(t=>{catT[t.cat]=(catT[t.cat]||0)+t.amount});
   if(catChart) catChart.destroy();
-  catChart=new Chart(document.getElementById('chart-cat'),{
-    type:'doughnut',
-    data:{labels:cL,datasets:[{data:cD,backgroundColor:cC,borderWidth:2,borderColor:'var(--bg-primary)'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
-      plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:8}}}}
-  });
+  const cL=Object.keys(catT),cD=Object.values(catT);
+  catChart=new Chart(document.getElementById('ch-cat'),{type:'doughnut',data:{labels:cL,datasets:[{data:cD,backgroundColor:cL.map(c=>CAT_COLORS[c]||'#888'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:8}}}}});
 
-  // Últimas transacciones
-  const last5=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  document.getElementById('dash-txn-table').innerHTML='<thead><tr><th>Descripción</th><th>Categoría</th><th>Monto</th></tr></thead><tbody>'+
-    last5.map(t=>`<tr>
-      <td>${t.desc}</td>
-      <td><span class="cat-dot" style="background:${CAT_COLORS[t.cat]||'#888'}"></span>${t.cat}</td>
-      <td style="color:${t.type==='ingreso'?'#1a7a3f':'#c0392b'};font-weight:600">${t.type==='ingreso'?'+':'-'}${fmt(t.amount)}</td>
-    </tr>`).join('')+'</tbody>';
-
-  // OKR resumen
-  document.getElementById('dash-okr-summary').innerHTML=objectives.map(o=>{
-    const pct=getObjPct(o); const color=pctColor(pct);
-    return `<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
-        <span>${o.title}</span><span style="font-weight:600;color:${color}">${pct}%</span>
+  // Debt list
+  const dl=document.getElementById('dash-debt-list');
+  dl.innerHTML=debts.slice(0,4).map(d=>{
+    const isCard=d.type==='credit_card';
+    const pct=isCard&&d.limit>0?Math.round(d.balance/d.limit*100):0;
+    const color=isCard?(pct>70?'#c0392b':pct>30?'#b87a0f':'#1a6b4a'):'#185fa5';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:30px;height:30px;border-radius:8px;background:${getEntityColor(d.entity)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white;flex-shrink:0">${initials(d.entity)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500">${d.entity} ${d.brand!=='N/A'?'·'+d.brand:''}</div>
+        ${isCard?`<div class="prog-wrap prog-wrap-xs" style="margin-top:4px"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>`:''}
       </div>
-      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
-      <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${o.cycle}</div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:13px;font-weight:500;color:${color}">${fmt(d.balance,d.currency)}</div>
+        ${isCard?`<div style="font-size:10px;color:var(--muted)">${pct}% ${t('used')}</div>`:''}
+      </div>
     </div>`;
   }).join('');
-}
 
-// ─── TRANSACCIONES ───────────────────────────────────────────────
-function renderTxnTable(){
-  const fc=document.getElementById('filter-cat').value;
-  const filtered=[...txns].filter(t=>!fc||t.cat===fc).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  document.getElementById('txn-table-body').innerHTML=filtered.map(t=>`
+  // OKR list
+  document.getElementById('dash-okr-list').innerHTML=objectives.map(o=>{
+    const pct=getObjPct(o); const color=pctColor(pct);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${o.title}</span><span style="font-weight:500;color:${color}">${pct}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">${o.cycle}</div>
+    </div>`;
+  }).join('');
+
+  // Recent txns
+  const last6=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  document.getElementById('dash-txn-body').innerHTML=last6.map(tx=>`
     <tr>
-      <td>${new Date(t.date).toLocaleDateString('es-PY')}</td>
-      <td>${t.desc}</td>
-      <td><span class="cat-dot" style="background:${CAT_COLORS[t.cat]||'#888'}"></span>${t.cat}</td>
-      <td><span class="badge ${t.type==='ingreso'?'badge-green':'badge-red'}">${t.type==='ingreso'?'Ingreso':'Gasto'}</span></td>
-      <td style="color:${t.type==='ingreso'?'#1a7a3f':'#c0392b'};font-weight:600">${t.type==='ingreso'?'+':'-'}${fmt(t.amount)}</td>
+      <td style="color:var(--muted);font-size:12px">${new Date(tx.date).toLocaleDateString(lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY')}</td>
+      <td style="font-weight:500">${tx.desc}</td>
+      <td><span class="entity-chip"><span class="entity-dot" style="background:${CAT_COLORS[tx.cat]||'#888'}"></span>${tx.cat}</span></td>
+      <td><span class="badge ${tx.type==='ingreso'?'badge-green':'badge-red'}">${tx.type==='ingreso'?t('opt_income'):t('opt_expense')}</span></td>
+      <td style="font-weight:500;color:${tx.type==='ingreso'?'var(--green)':'var(--red)'}">${tx.type==='ingreso'?'+':'-'}${fmt(tx.amount)}</td>
     </tr>`).join('');
 }
 
+// ══════════════════════════════════════════════
+// TRANSACTIONS
+// ══════════════════════════════════════════════
+function renderTxnTable(){
+  const fc=document.getElementById('filter-cat').value;
+  const filtered=[...txns].filter(t=>!fc||t.cat===fc).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('txn-body').innerHTML=filtered.map(tx=>`
+    <tr>
+      <td style="color:var(--muted);font-size:12px">${new Date(tx.date).toLocaleDateString(lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY')}</td>
+      <td>${tx.desc}</td>
+      <td><span class="entity-chip"><span class="entity-dot" style="background:${CAT_COLORS[tx.cat]||'#888'}"></span>${tx.cat}</span></td>
+      <td><span class="badge ${tx.type==='ingreso'?'badge-green':'badge-red'}">${tx.type==='ingreso'?t('opt_income'):t('opt_expense')}</span></td>
+      <td style="font-weight:500;color:${tx.type==='ingreso'?'var(--green)':'var(--red)'}">${tx.type==='ingreso'?'+':'-'}${fmt(tx.amount)}</td>
+    </tr>`).join('');
+}
 function addTxn(){
   const desc=document.getElementById('txn-desc').value.trim();
   const amount=parseFloat(document.getElementById('txn-amount').value);
   const cat=document.getElementById('txn-cat').value;
   const type=document.getElementById('txn-type').value;
   const date=document.getElementById('txn-date').value;
-  if(!desc||!amount||!date){alert('Completá todos los campos');return;}
+  if(!desc||!amount||!date){alert(lang==='en'?'Fill all fields':lang==='pt'?'Preencha todos os campos':'Completá todos los campos');return;}
   txns.push({id:Date.now(),desc,amount,cat,type,date});
   document.getElementById('txn-desc').value='';
   document.getElementById('txn-amount').value='';
   renderTxnTable();
-  toast('✓ Transacción agregada');
+  toast('✓ '+(lang==='en'?'Transaction added':lang==='pt'?'Transação adicionada':'Transacción agregada'));
 }
 
-// ─── PRESUPUESTOS ────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// BUDGET
+// ══════════════════════════════════════════════
 function renderBudget(){
   document.getElementById('budget-form').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>`
     <div class="form-group" style="margin-bottom:10px">
-      <label class="form-label"><span class="cat-dot" style="background:${CAT_COLORS[c]}"></span>${c}</label>
+      <label class="form-label"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[c]};margin-right:6px"></span>${c}</label>
       <input type="number" id="b-${c}" value="${budgets[c]||0}" min="0">
     </div>`).join('');
-
-  const mt=getThisMonthTxns();
+  const mt=getMonthTxns();
   document.getElementById('budget-status').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>{
     const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
-    const bud=budgets[c]||0;
-    const pct=bud>0?Math.min(100,Math.round(spent/bud*100)):0;
-    const over=spent>bud&&bud>0;
-    const color=over?'#c0392b':pct>70?'#EF9F27':'#1D9E75';
-    return `<div class="budget-row">
-      <div class="budget-label"><span class="cat-dot" style="background:${CAT_COLORS[c]}"></span>${c}</div>
-      <div class="budget-bar-wrap"><div class="budget-bar" style="width:${pct}%;background:${color}"></div></div>
-      <div class="budget-used" style="color:${over?'#c0392b':'var(--text-secondary)'}">
-        ${fmt(spent)} / ${fmt(bud)}
+    const bud=budgets[c]||0; const pct=bud>0?Math.min(100,Math.round(spent/bud*100)):0;
+    const over=spent>bud&&bud>0; const color=over?'#c0392b':pct>70?'#b87a0f':'#1a6b4a';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)">
+      <div style="font-size:13px;flex:1;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[c]}"></span>${c}</div>
+      <div style="flex:1;max-width:120px"><div class="prog-wrap" style="height:5px"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div></div>
+      <div style="font-size:11px;color:${over?'var(--red)':'var(--muted)'};min-width:90px;text-align:right">${fmt(spent)} / ${fmt(bud)}</div>
+    </div>`;
+  }).join('');
+}
+function saveBudgets(){
+  CATS.filter(c=>c!=='Salario').forEach(c=>{const v=parseFloat(document.getElementById('b-'+c).value);if(!isNaN(v))budgets[c]=v;});
+  renderBudget(); toast('✓ '+(lang==='en'?'Budgets saved':lang==='pt'?'Orçamentos salvos':'Presupuestos guardados'));
+}
+
+// ══════════════════════════════════════════════
+// DEBTS
+// ══════════════════════════════════════════════
+function debtTypeName(type){ return t('debt_type_'+type)||type; }
+
+function renderDebts(){
+  // Metrics
+  const totalBalance=debts.reduce((s,d)=>s+d.balance,0);
+  const totalMonthly=debts.reduce((s,d)=>s+d.monthlyPay,0);
+  const cards=debts.filter(d=>d.type==='credit_card');
+  const totalLimit=cards.reduce((s,d)=>s+d.limit,0);
+  const totalUsed=cards.reduce((s,d)=>s+d.balance,0);
+  const usedPct=totalLimit>0?Math.round(totalUsed/totalLimit*100):0;
+  document.getElementById('d-total').textContent=fmt(totalBalance);
+  document.getElementById('d-entities-count').textContent=debts.length+' '+(lang==='en'?'obligations':lang==='pt'?'obrigações':'obligaciones');
+  document.getElementById('d-monthly').textContent=fmt(totalMonthly);
+  document.getElementById('d-used-pct').textContent=usedPct+'%';
+  document.getElementById('d-available').textContent=fmt(totalLimit-totalUsed);
+
+  // Cards grid
+  const filtered=debtFilter==='all'?debts:debts.filter(d=>d.type===debtFilter);
+  if(!filtered.length){
+    document.getElementById('debt-grid').innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">${t('no_debts')}</div>`;
+    return;
+  }
+  document.getElementById('debt-grid').innerHTML=filtered.map(d=>{
+    const isCard=d.type==='credit_card';
+    const availPct=isCard&&d.limit>0?Math.round((d.limit-d.balance)/d.limit*100):0;
+    const usedPct2=isCard&&d.limit>0?Math.round(d.balance/d.limit*100):0;
+    const barColor=usedPct2>70?'#c0392b':usedPct2>30?'#b87a0f':'#1a6b4a';
+    const entityColor=getEntityColor(d.entity);
+    return `<div class="debt-card">
+      <div class="debt-card-header">
+        <div class="debt-entity">
+          <div class="debt-logo" style="background:${entityColor}">${initials(d.entity)}</div>
+          <div>
+            <div class="debt-name">${d.entity}${d.brand!=='N/A'?' · '+d.brand:''}</div>
+            <div class="debt-type-tag">${debtTypeName(d.type)}${d.currency!=='PYG'?' · '+d.currency:''}</div>
+          </div>
+        </div>
+        <div>
+          <div class="debt-amount" style="color:var(--red)">${fmt(d.balance,d.currency)}</div>
+          <div class="debt-amount-label">${t('balance_label')}</div>
+        </div>
+      </div>
+      ${isCard&&d.limit>0?`
+        <div class="credit-bar-wrap">
+          <div class="credit-bar-info">
+            <span>${t('used')}: ${fmt(d.balance,d.currency)} (${usedPct2}%)</span>
+            <span>${t('available_label')}: ${fmt(d.limit-d.balance,d.currency)}</span>
+          </div>
+          <div class="prog-wrap"><div class="prog-bar" style="width:${usedPct2}%;background:${barColor}"></div></div>
+        </div>`:isCard?'':''
+      }
+      <div class="debt-footer">
+        ${d.monthlyPay?`<div class="debt-footer-item"><div class="debt-footer-label">${t('monthly_label')}</div><div class="debt-footer-value">${fmt(d.monthlyPay,d.currency)}</div></div>`:''}
+        ${isCard&&d.dueDate?`<div class="debt-footer-item"><div class="debt-footer-label">${t('due_label')}</div><div class="debt-footer-value">${d.dueDate.slice(5)}</div></div>`:''}
+        ${d.rate?`<div class="debt-footer-item"><div class="debt-footer-label">${t('rate_label')}</div><div class="debt-footer-value">${d.rate}%</div></div>`:''}
+        ${isCard&&d.limit?`<div class="debt-footer-item"><div class="debt-footer-label">${t('limit_label')}</div><div class="debt-footer-value">${fmt(d.limit,d.currency)}</div></div>`:''}
+        ${d.notes?`<div class="debt-footer-item" style="flex:1;text-align:left"><div class="debt-footer-label">Nota</div><div class="debt-footer-value" style="font-size:11px;color:var(--muted)">${d.notes}</div></div>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
-function saveBudgets(){
-  CATS.filter(c=>c!=='Salario').forEach(c=>{
-    const v=parseFloat(document.getElementById('b-'+c).value);
-    if(!isNaN(v)) budgets[c]=v;
-  });
-  renderBudget();
-  toast('✓ Presupuestos guardados');
+function filterDebtType(type, el){
+  debtFilter=type;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderDebts();
 }
 
-// ─── OKR ─────────────────────────────────────────────────────────
+// Debt modal
+function openDebtModal(){ document.getElementById('debt-modal').classList.add('open'); toggleDebtFields(); }
+function closeDebtModal(){ document.getElementById('debt-modal').classList.remove('open'); }
+function toggleDebtFields(){
+  const type=document.getElementById('d-type').value;
+  const isCard=type==='credit_card';
+  document.getElementById('d-limit-wrap').style.display=isCard?'':'none';
+  document.getElementById('d-due-wrap').style.display=isCard?'':'none';
+}
+document.getElementById('d-entity').addEventListener('change',function(){ document.getElementById('custom-entity-wrap').style.display=this.value==='custom'?'':'none'; });
+document.getElementById('d-brand').addEventListener('change',function(){ document.getElementById('custom-brand-wrap').style.display=this.value==='custom_brand'?'':'none'; });
+
+function saveDebt(){
+  const type=document.getElementById('d-type').value;
+  let entity=document.getElementById('d-entity').value;
+  if(entity==='custom') entity=document.getElementById('d-custom-entity').value.trim()||'Nueva entidad';
+  let brand=document.getElementById('d-brand').value;
+  if(brand==='custom_brand') brand=document.getElementById('d-custom-brand').value.trim()||'Otra';
+  const currency=document.getElementById('d-currency').value;
+  const balance=parseFloat(document.getElementById('d-balance').value)||0;
+  const limit=parseFloat(document.getElementById('d-limit').value)||0;
+  const monthlyPay=parseFloat(document.getElementById('d-monthly-pay').value)||0;
+  const dueDate=document.getElementById('d-due').value;
+  const rate=parseFloat(document.getElementById('d-rate').value)||0;
+  const notes=document.getElementById('d-notes').value.trim();
+  if(!balance){alert(lang==='en'?'Enter balance':lang==='pt'?'Informe o saldo':'Ingresá el saldo');return;}
+  debts.push({id:Date.now(),type,entity,brand,currency,balance,limit,monthlyPay,dueDate,rate,notes});
+  closeDebtModal();
+  renderDebts();
+  toast('✓ '+(lang==='en'?'Debt added':lang==='pt'?'Dívida adicionada':'Deuda agregada'));
+}
+
+// ══════════════════════════════════════════════
+// CREDIT
+// ══════════════════════════════════════════════
+function renderCredit(){
+  const cards=debts.filter(d=>d.type==='credit_card');
+  const totalLimit=cards.reduce((s,d)=>s+d.limit,0);
+  const totalUsed=cards.reduce((s,d)=>s+d.balance,0);
+  const totalAvail=totalLimit-totalUsed;
+  const overallPct=totalLimit>0?Math.round(totalUsed/totalLimit*100):0;
+
+  document.getElementById('cr-total-limit').textContent=fmt(totalLimit);
+  document.getElementById('cr-total-used').textContent=fmt(totalUsed);
+  document.getElementById('cr-used-pct-sub').textContent=overallPct+'% '+t('of_total_limit');
+  document.getElementById('cr-available').textContent=fmt(totalAvail);
+
+  // Ring
+  const circumference=2*Math.PI*56;
+  const dashArray=circumference*overallPct/100;
+  document.getElementById('util-ring').setAttribute('stroke-dasharray',`${dashArray} ${circumference}`);
+  document.getElementById('util-ring').setAttribute('stroke',overallPct>70?'#c0392b':overallPct>30?'#b87a0f':'#1a6b4a');
+  document.getElementById('util-pct-big').textContent=overallPct+'%';
+  document.getElementById('util-status').textContent=overallPct<30?t('util_low_msg'):overallPct<70?t('util_mid_msg'):t('util_high_msg');
+  document.getElementById('util-status').style.color=overallPct>70?'var(--red)':overallPct>30?'var(--amber)':'var(--green)';
+
+  // Bars per card
+  document.getElementById('credit-bars').innerHTML=cards.map(d=>{
+    const pct=d.limit>0?Math.round(d.balance/d.limit*100):0;
+    const color=pct>70?'#c0392b':pct>30?'#b87a0f':'#1a6b4a';
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:22px;height:22px;border-radius:6px;background:${getEntityColor(d.entity)};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:white">${initials(d.entity)}</div>
+          <span>${d.entity} ${d.brand!=='N/A'?'· '+d.brand:''}</span>
+        </div>
+        <span style="font-weight:500;color:${color}">${pct}%</span>
+      </div>
+      <div class="prog-wrap" style="height:8px;border-radius:4px">
+        <div class="prog-bar" style="width:${pct}%;background:${color};border-radius:4px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">
+        <span>${t('used')}: ${fmt(d.balance,d.currency)}</span>
+        <span>${t('available_label')}: ${fmt(d.limit-d.balance,d.currency)}</span>
+      </div>
+    </div>`;
+  }).join('')||(lang==='en'?'<div style="color:var(--muted);font-size:13px;padding:20px">No credit cards registered.</div>':'<div style="color:var(--muted);font-size:13px;padding:20px">No hay tarjetas de crédito registradas.</div>');
+
+  // Table
+  document.getElementById('credit-table-body').innerHTML=cards.map(d=>{
+    const pct=d.limit>0?Math.round(d.balance/d.limit*100):0;
+    const color=pct>70?'#c0392b':pct>30?'#b87a0f':'#1a6b4a';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:${getEntityColor(d.entity)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:white">${initials(d.entity)}</div>
+        <span style="font-weight:500">${d.entity}</span>
+      </div></td>
+      <td>${d.brand!=='N/A'?`<span class="badge badge-blue">${d.brand}</span>`:'-'}</td>
+      <td style="font-weight:500">${fmt(d.limit,d.currency)}</td>
+      <td style="color:var(--red)">${fmt(d.balance,d.currency)}</td>
+      <td style="color:var(--green)">${fmt(d.limit-d.balance,d.currency)}</td>
+      <td style="color:var(--muted)">${d.dueDate||'-'}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+        <div style="width:60px"><div class="prog-wrap prog-wrap-sm"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div></div>
+        <span style="font-weight:500;color:${color};min-width:32px;text-align:right">${pct}%</span>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// OKR
+// ══════════════════════════════════════════════
 function renderOKR(){
   const el=document.getElementById('okr-list');
-  if(!objectives.length){
-    el.innerHTML='<div class="card empty-state">No hay objetivos aún. Creá tu primer OKR.</div>';return;
-  }
+  if(!objectives.length){el.innerHTML=`<div class="card" style="text-align:center;padding:48px;color:var(--muted);font-size:13px">${lang==='en'?'No objectives yet.':lang==='pt'?'Nenhum objetivo ainda.':'No hay objetivos aún.'}</div>`;return;}
   el.innerHTML=objectives.map((o,oi)=>{
     const pct=getObjPct(o); const color=pctColor(pct);
-    return `<div class="obj-card">
-      <div class="obj-header">
-        <div style="flex:1">
-          <div class="obj-title">${o.title}</div>
-          <div class="obj-cycle">${o.cycle}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;min-width:200px">
-          <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
-          <div class="obj-pct" style="color:${color}">${pct}%</div>
+    return `<div class="okr-card">
+      <div class="okr-header">
+        <div style="flex:1"><div class="okr-title">${o.title}</div><div class="okr-meta">${o.cycle}</div></div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:220px">
+          <div class="prog-wrap" style="flex:1"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div style="font-size:14px;font-weight:500;color:${color};min-width:36px;text-align:right">${pct}%</div>
         </div>
       </div>
-      <div class="kr-list">${o.krs.map((kr,ki)=>{
-        const kpct=Math.min(100,Math.round(kr.current/kr.target*100));
-        const kc=pctColor(kpct);
+      <div class="okr-body">${o.krs.map((kr,ki)=>{
+        const kpct=Math.min(100,Math.round(kr.current/kr.target*100)); const kc=pctColor(kpct);
         return `<div class="kr-item">
-          <div class="kr-top">
-            <div class="status-dot" style="background:${kc}"></div>
+          <div class="kr-row"><div class="status-dot" style="background:${kc}"></div>
             <div class="kr-name">${kr.name}</div>
             <div class="kr-val">${kr.current.toLocaleString()} / ${kr.target.toLocaleString()} — ${kpct}%</div>
-            <input type="number" style="width:95px;font-size:11px;padding:4px 8px" value="${kr.current}" onchange="updateKR(${oi},${ki},this.value)">
+            <input type="number" style="width:90px;font-size:11px;padding:4px 8px;border-radius:6px" value="${kr.current}" onchange="updateKR(${oi},${ki},this.value)">
           </div>
-          <div class="kr-bar-wrap"><div class="kr-bar" style="width:${kpct}%;background:${kc}"></div></div>
+          <div class="prog-wrap prog-wrap-xs"><div class="prog-bar" style="width:${kpct}%;background:${kc}"></div></div>
         </div>`;
       }).join('')}</div>
     </div>`;
   }).join('');
 }
+function updateKR(oi,ki,val){ objectives[oi].krs[ki].current=parseFloat(val)||0; renderOKR(); }
 
-function updateKR(oi,ki,val){
-  objectives[oi].krs[ki].current=parseFloat(val)||0;
-  renderOKR();
-}
-
-// ─── OKR FINANCIEROS ─────────────────────────────────────────────
 function renderOKRFin(){
-  const mt=getThisMonthTxns();
-  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
-  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
-  const ahorro=ingresos-gastos;
+  const mt=getMonthTxns();
+  const inc=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const exp=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
   const entret=mt.filter(t=>t.type==='gasto'&&t.cat==='Entretenimiento').reduce((s,t)=>s+t.amount,0);
+  const totalDebt=debts.reduce((s,d)=>s+d.balance,0);
+  const totalMonthly=debts.reduce((s,d)=>s+d.monthlyPay,0);
+  const cards=debts.filter(d=>d.type==='credit_card');
+  const totalLimit=cards.reduce((s,d)=>s+d.limit,0);
+  const totalUsed=cards.reduce((s,d)=>s+d.balance,0);
 
   const finOkrs=[
-    {title:'Tasa de ahorro mensual ≥ 20%',desc:'Ahorrar al menos el 20% del ingreso',current:ingresos>0?ahorro/ingresos*100:0,target:20,suffix:'%',note:'Calculado automáticamente con tus datos reales'},
-    {title:'Control de entretenimiento ≤ ₲200k',desc:'Mantener gasto en entretenimiento bajo control',current:entret/1000,target:200,suffix:'k',note:'Basado en transacciones del mes actual',inverted:true},
-    {title:'Ingresos mensuales ≥ ₲6M',desc:'Alcanzar ingresos totales de ₲6 millones',current:ingresos/1000000,target:6,suffix:'M',note:'Suma de ingresos reales del mes'},
+    {title:lang==='en'?'Monthly saving rate ≥ 20%':lang==='pt'?'Taxa de poupança mensal ≥ 20%':'Tasa de ahorro mensual ≥ 20%',current:inc>0?(inc-exp)/inc*100:0,target:20,suffix:'%',note:lang==='en'?'Auto-calculated from your data':lang==='pt'?'Calculado automaticamente':'Calculado automáticamente'},
+    {title:lang==='en'?'Entertainment ≤ 200k/month':lang==='pt'?'Entretenimento ≤ 200k/mês':'Entretenimiento ≤ 200k/mes',current:entret/1000,target:200,suffix:'k',note:lang==='en'?'Based on this month transactions':lang==='pt'?'Baseado nas transações do mês':'Basado en transacciones del mes',inverted:true},
+    {title:lang==='en'?'Income ≥ 6M':lang==='pt'?'Receitas ≥ 6M':'Ingresos ≥ 6M',current:inc/1000000,target:6,suffix:'M',note:lang==='en'?'Real income this month':lang==='pt'?'Receitas reais do mês':'Ingresos reales del mes'},
+    {title:lang==='en'?'Credit utilization < 30%':lang==='pt'?'Utilização de crédito < 30%':'Utilización de crédito < 30%',current:totalLimit>0?totalUsed/totalLimit*100:0,target:30,suffix:'%',note:lang==='en'?'Based on all credit cards':lang==='pt'?'Baseado em todos os cartões':'Basado en todas tus tarjetas',inverted:true},
+    {title:lang==='en'?'Monthly debt payment < 30% of income':lang==='pt'?'Pagamento de dívida < 30% da renda':'Pago de deuda < 30% del ingreso',current:inc>0?totalMonthly/inc*100:0,target:30,suffix:'%',note:lang==='en'?'Debt-to-income ratio':lang==='pt'?'Relação dívida/renda':'Ratio deuda/ingreso',inverted:true},
   ];
-
   document.getElementById('okr-fin-list').innerHTML=finOkrs.map(o=>{
     const raw=o.inverted?Math.max(0,100-(o.current/o.target*100)):Math.min(100,o.current/o.target*100);
     const pct=Math.round(raw); const color=pctColor(pct);
-    return `<div class="obj-card">
-      <div class="obj-header" style="cursor:default">
-        <div style="flex:1">
-          <div class="obj-title">${o.title}</div>
-          <div class="obj-cycle">${o.desc}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;min-width:200px">
-          <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
-          <div class="obj-pct" style="color:${color}">${pct}%</div>
+    return `<div class="okr-card" style="margin-bottom:12px">
+      <div class="okr-header" style="cursor:default">
+        <div style="flex:1"><div class="okr-title">${o.title}</div><div class="okr-meta">${o.note}</div></div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:220px">
+          <div class="prog-wrap" style="flex:1"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div style="font-size:14px;font-weight:500;color:${color};min-width:36px;text-align:right">${pct}%</div>
         </div>
       </div>
-      <div class="kr-list">
+      <div class="okr-body">
         <div class="kr-item">
-          <div class="kr-top">
-            <div class="status-dot" style="background:${color}"></div>
-            <div class="kr-name">${o.note}</div>
-            <div class="kr-val">${o.current.toFixed(1)}${o.suffix} / ${o.target}${o.suffix}</div>
+          <div class="kr-row"><div class="status-dot" style="background:${color}"></div>
+            <div class="kr-name">${t('used')}: ${o.current.toFixed(1)}${o.suffix}</div>
+            <div class="kr-val">${t('tab_all').includes('?')?'Objetivo':'Target'}: ${o.target}${o.suffix}</div>
           </div>
-          <div class="kr-bar-wrap"><div class="kr-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div class="prog-wrap prog-wrap-xs"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ─── EXPORTAR — VISTA PREVIA ──────────────────────────────────────
-function renderExportPreview(){
-  const mt=getThisMonthTxns();
-  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
-  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
-  const now=new Date();
-  const mesNombre=now.toLocaleDateString('es-PY',{month:'long',year:'numeric'});
-  document.getElementById('pdf-preview').innerHTML=`
-    <div class="preview-box">
-      <div style="font-size:15px;font-weight:600;margin-bottom:3px">Reporte mensual — ${mesNombre}</div>
-      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:18px">finance+okr MVP 1</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
-        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Ingresos</div><div style="font-size:15px;font-weight:600;color:#1a7a3f">${fmt(ingresos)}</div></div>
-        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Gastos</div><div style="font-size:15px;font-weight:600;color:#c0392b">${fmt(gastos)}</div></div>
-        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Balance</div><div style="font-size:15px;font-weight:600">${fmt(ingresos-gastos)}</div></div>
-      </div>
-      <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Estado OKRs</div>
-      ${objectives.map(o=>{
-        const pct=getObjPct(o); const color=pctColor(pct);
-        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border-tertiary)">
-          <span>${o.title}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:80px;height:3px;background:var(--bg-tertiary);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>
-            <span style="font-weight:600;color:${color};min-width:28px;text-align:right">${pct}%</span>
-          </div>
-        </div>`;
-      }).join('')}
-      <div style="font-size:11px;color:var(--text-tertiary);margin-top:14px">${txns.length} transacciones registradas</div>
-    </div>`;
-}
-
-// ─── EXPORTAR EXCEL ───────────────────────────────────────────────
-function exportExcel(){
-  const wb=XLSX.utils.book_new();
-
-  // Hoja 1: Transacciones
-  const txnData=[['Fecha','Descripción','Categoría','Tipo','Monto (₲)']];
-  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
-    txnData.push([t.date, t.desc, t.cat, t.type==='ingreso'?'Ingreso':'Gasto', t.type==='ingreso'?t.amount:-t.amount]);
-  });
-  const ws1=XLSX.utils.aoa_to_sheet(txnData);
-  ws1['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Transacciones');
-
-  // Hoja 2: Resumen mensual
-  const mt=getThisMonthTxns();
-  const sumData=[['Categoría','Presupuesto (₲)','Gastado (₲)','Diferencia (₲)','% Usado']];
-  CATS.filter(c=>c!=='Salario').forEach(c=>{
-    const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
-    const bud=budgets[c]||0;
-    const pct=bud>0?Math.round(spent/bud*100):0;
-    sumData.push([c, bud, spent, bud-spent, pct+'%']);
-  });
-  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
-  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
-  sumData.push([]);
-  sumData.push(['TOTAL INGRESOS','','',ingresos,'']);
-  sumData.push(['TOTAL GASTOS','','',gastos,'']);
-  sumData.push(['BALANCE NETO','','',ingresos-gastos,'']);
-  const ws2=XLSX.utils.aoa_to_sheet(sumData);
-  ws2['!cols']=[{wch:18},{wch:18},{wch:16},{wch:16},{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Resumen mensual');
-
-  // Hoja 3: OKRs
-  const okrData=[['Objetivo','Ciclo','Key Result','Actual','Meta','Progreso %']];
-  objectives.forEach(o=>{
-    if(!o.krs.length){okrData.push([o.title,o.cycle,'—','','','']);return;}
-    o.krs.forEach((kr,i)=>{
-      const pct=Math.min(100,Math.round(kr.current/kr.target*100));
-      okrData.push([i===0?o.title:'', i===0?o.cycle:'', kr.name, kr.current, kr.target, pct+'%']);
-    });
-  });
-  const ws3=XLSX.utils.aoa_to_sheet(okrData);
-  ws3['!cols']=[{wch:40},{wch:10},{wch:40},{wch:14},{wch:14},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws3,'OKRs');
-
-  XLSX.writeFile(wb,'finanzas_okr_'+new Date().toISOString().slice(0,7)+'.xlsx');
-  toast('✓ Excel descargado correctamente');
-}
-
-function exportExcelTxns(){
-  const wb=XLSX.utils.book_new();
-  const txnData=[['Fecha','Descripción','Categoría','Tipo','Monto (₲)']];
-  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
-    txnData.push([t.date, t.desc, t.cat, t.type==='ingreso'?'Ingreso':'Gasto', t.type==='ingreso'?t.amount:-t.amount]);
-  });
-  const ws=XLSX.utils.aoa_to_sheet(txnData);
-  ws['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
-  XLSX.utils.book_append_sheet(wb,ws,'Transacciones');
-  XLSX.writeFile(wb,'transacciones_'+new Date().toISOString().slice(0,7)+'.xlsx');
-  toast('✓ Transacciones exportadas');
-}
-
-// ─── EXPORTAR PDF ─────────────────────────────────────────────────
-function exportPDF(){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const now=new Date();
-  const mesNombre=now.toLocaleDateString('es-PY',{month:'long',year:'numeric'});
-  const mt=getThisMonthTxns();
-  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
-  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
-  const balance=ingresos-gastos;
-  const ahorro=ingresos>0?Math.round(balance/ingresos*100):0;
-  const W=210, M=18;
-  let y=20;
-
-  // Header
-  doc.setFillColor(20,20,20);
-  doc.rect(0,0,W,15,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('finance+okr',M,10);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('Reporte mensual — '+mesNombre,W-M,10,'right');
-  y=28;
-
-  // Métricas
-  doc.setTextColor(30,30,30);
-  doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('Resumen financiero',M,y);y+=9;
-  const boxes=[
-    {label:'Ingresos',value:fmt(ingresos),r:39,g:122,b:74},
-    {label:'Gastos',value:fmt(gastos),r:192,g:57,b:43},
-    {label:'Balance',value:fmt(balance),r:30,g:30,b:30},
-    {label:'Tasa de ahorro',value:ahorro+'%',r:30,g:30,b:30},
-  ];
-  const bw=42, bh=20, gap=3; let bx=M;
-  boxes.forEach(b=>{
-    doc.setFillColor(248,248,248);
-    doc.roundedRect(bx,y,bw,bh,2,2,'F');
-    doc.setDrawColor(220,220,220);
-    doc.roundedRect(bx,y,bw,bh,2,2,'S');
-    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
-    doc.text(b.label,bx+bw/2,y+6,'center');
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(b.r,b.g,b.b);
-    doc.text(b.value,bx+bw/2,y+14,'center');
-    bx+=bw+gap;
-  });
-  y+=bh+12;
-
-  // Presupuestos
-  doc.setTextColor(30,30,30);
-  doc.setFontSize(12);doc.setFont('helvetica','bold');
-  doc.text('Presupuestos — Estado del mes',M,y);y+=7;
-  const cols=['Categoría','Presupuesto','Gastado','Diferencia','% Usado'];
-  const colW=[40,30,28,28,22];
-  doc.setFillColor(240,240,240);
-  doc.rect(M,y,W-2*M,6,'F');
-  doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(80,80,80);
-  let cx=M;
-  cols.forEach((c,i)=>{doc.text(c,cx+1.5,y+4);cx+=colW[i];});
-  y+=7;
-  CATS.filter(c=>c!=='Salario').forEach((c,idx)=>{
-    const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
-    const bud=budgets[c]||0;
-    const pct=bud>0?Math.round(spent/bud*100):0;
-    const over=spent>bud&&bud>0;
-    if(idx%2===0){doc.setFillColor(252,252,252);doc.rect(M,y-1,W-2*M,6,'F');}
-    doc.setFont('helvetica','normal');
-    doc.setTextColor(over?192:30,over?57:30,over?43:30);
-    cx=M;
-    [c,fmtNum(bud),fmtNum(spent),fmtNum(bud-spent),pct+'%'].forEach((v,i)=>{
-      doc.text(String(v),cx+1.5,y+4);cx+=colW[i];
-    });
-    y+=6;
-  });
-  y+=10;
-
-  // OKRs
-  doc.setTextColor(30,30,30);
-  doc.setFontSize(12);doc.setFont('helvetica','bold');
-  doc.text('OKRs — Estado actual',M,y);y+=7;
-  objectives.forEach(o=>{
-    const pct=getObjPct(o);
-    const color=pct>=70?[29,158,117]:pct>=40?[186,117,23]:[216,90,48];
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
-    const titleW=W-2*M-25;
-    doc.text(o.title.length>60?o.title.slice(0,58)+'…':o.title,M,y);
-    doc.setTextColor(...color);
-    doc.text(pct+'%',W-M,y,'right');
-    y+=5;
-    doc.setFillColor(230,230,230);
-    doc.roundedRect(M,y,W-2*M-20,2.5,1,1,'F');
-    doc.setFillColor(...color);
-    doc.roundedRect(M,y,(W-2*M-20)*pct/100,2.5,1,1,'F');
-    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
-    doc.text(o.cycle,M,y+6);
-    y+=9;
-    o.krs.forEach(kr=>{
-      const kpct=Math.min(100,Math.round(kr.current/kr.target*100));
-      doc.setFontSize(7.5);doc.setTextColor(80,80,80);
-      const krText='• '+(kr.name.length>55?kr.name.slice(0,53)+'…':kr.name);
-      doc.text(krText,M+4,y);
-      doc.text(kpct+'%',W-M,y,'right');
-      y+=5;
-    });
-    y+=5;
-  });
-
-  // Últimas transacciones
-  if(y<220){
-    doc.setTextColor(30,30,30);
-    doc.setFontSize(12);doc.setFont('helvetica','bold');
-    doc.text('Últimas transacciones',M,y);y+=7;
-    const last8=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
-    const tCols=['Fecha','Descripción','Categoría','Tipo','Monto'];
-    const tColW=[22,54,28,18,28];
-    doc.setFillColor(240,240,240);
-    doc.rect(M,y,W-2*M,5.5,'F');
-    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(80,80,80);
-    cx=M;
-    tCols.forEach((c,i)=>{doc.text(c,cx+1,y+4);cx+=tColW[i];});
-    y+=6;
-    last8.forEach((t,idx)=>{
-      if(idx%2===0){doc.setFillColor(252,252,252);doc.rect(M,y-1,W-2*M,5.5,'F');}
-      doc.setFont('helvetica','normal');
-      const isI=t.type==='ingreso';
-      cx=M;
-      const vals=[
-        t.date,
-        t.desc.length>30?t.desc.slice(0,28)+'…':t.desc,
-        t.cat,
-        isI?'Ingreso':'Gasto',
-        (isI?'+':'-')+fmtNum(t.amount)
-      ];
-      vals.forEach((v,i)=>{
-        doc.setTextColor(i===4?(isI?39:192):30, i===4?(isI?122:57):30, i===4?(isI?74:43):30);
-        doc.text(String(v),cx+1,y+4);cx+=tColW[i];
-      });
-      y+=5.5;
-    });
-  }
-
-  // Footer
-  doc.setFillColor(245,245,243);
-  doc.rect(0,284,W,13,'F');
-  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(140,140,140);
-  doc.text('Generado el '+now.toLocaleDateString('es-PY')+' · finance+okr MVP 1',M,291);
-  doc.text('Página 1 de 1',W-M,291,'right');
-
-  doc.save('reporte_finanzas_okr_'+now.toISOString().slice(0,7)+'.pdf');
-  toast('✓ PDF descargado correctamente');
-}
-
-// ─── MODAL OKR ────────────────────────────────────────────────────
-function openObjModal(){
-  document.getElementById('obj-modal').classList.add('open');
-  krCount=0;
-  document.getElementById('kr-inputs').innerHTML='';
-  document.getElementById('new-obj-title').value='';
-  addKRInput();
-}
-function closeObjModal(){
-  document.getElementById('obj-modal').classList.remove('open');
-}
+// OKR modal
+function openObjModal(){ document.getElementById('obj-modal').classList.add('open'); krCount=0; document.getElementById('kr-inputs').innerHTML=''; document.getElementById('new-obj-title').value=''; addKRInput(); }
+function closeObjModal(){ document.getElementById('obj-modal').classList.remove('open'); }
 function addKRInput(){
-  const d=document.createElement('div');
-  d.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:10px';
-  d.innerHTML='<input type="text" placeholder="Resultado clave"><input type="number" placeholder="Actual" min="0"><input type="number" placeholder="Meta" min="1">';
-  d.id='kr-row-'+(krCount++);
-  document.getElementById('kr-inputs').appendChild(d);
+  const d=document.createElement('div'); d.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:10px';
+  d.innerHTML='<input type="text" placeholder="'+(lang==='en'?'Key result':lang==='pt'?'Resultado-chave':'Resultado clave')+'"><input type="number" placeholder="'+(lang==='en'?'Current':lang==='pt'?'Atual':'Actual')+'" min="0"><input type="number" placeholder="'+(lang==='en'?'Target':lang==='pt'?'Meta':'Meta')+'" min="1">';
+  d.id='kr-row-'+(krCount++); document.getElementById('kr-inputs').appendChild(d);
 }
 function saveObj(){
   const title=document.getElementById('new-obj-title').value.trim();
   const cycle=document.getElementById('new-obj-cycle').value;
-  if(!title){alert('Ingresá el título del objetivo');return;}
+  if(!title){alert(lang==='en'?'Enter objective title':lang==='pt'?'Informe o título':'Ingresá el título');return;}
   const krs=[];
   document.querySelectorAll('[id^=kr-row-]').forEach(row=>{
     const inputs=row.querySelectorAll('input');
-    const name=inputs[0].value.trim();
-    const current=parseFloat(inputs[1].value)||0;
-    const target=parseFloat(inputs[2].value)||1;
+    const name=inputs[0].value.trim(); const current=parseFloat(inputs[1].value)||0; const target=parseFloat(inputs[2].value)||1;
     if(name) krs.push({name,current,target});
   });
-  objectives.push({id:Date.now(),title,cycle,krs});
-  closeObjModal();
-  renderOKR();
-  toast('✓ Objetivo creado');
+  objectives.push({id:Date.now(),title,cycle,krs}); closeObjModal(); renderOKR();
+  toast('✓ '+(lang==='en'?'Objective created':lang==='pt'?'Objetivo criado':'Objetivo creado'));
 }
 
-// ─── INICIO ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// EXPORT PREVIEW
+// ══════════════════════════════════════════════
+function renderExportPreview(){
+  const mt=getMonthTxns();
+  const inc=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const exp=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const totalDebt=debts.reduce((s,d)=>s+d.balance,0);
+  const now=new Date();
+  document.getElementById('export-preview').innerHTML=`
+    <div style="border:0.5px solid var(--border);border-radius:10px;padding:20px;background:var(--bg2);max-width:480px">
+      <div style="font-size:15px;font-weight:500;margin-bottom:3px">${lang==='en'?'Monthly report':lang==='pt'?'Relatório mensal':'Reporte mensual'} — ${now.toLocaleDateString(lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY',{month:'long',year:'numeric'})}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:16px">finance+okr MVP 2</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        ${[{l:t('m_income'),v:fmt(inc),c:'var(--green)'},{l:t('m_expenses'),v:fmt(exp),c:'var(--red)'},{l:t('total_debt'),v:fmt(totalDebt),c:'var(--amber)'},{l:'Balance',v:fmt(inc-exp),c:'var(--ink)'}].map(x=>`<div style="text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:3px">${x.l}</div><div style="font-size:13px;font-weight:500;color:${x.c}">${x.v}</div></div>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">OKRs</div>
+      ${objectives.map(o=>{const pct=getObjPct(o);const color=pctColor(pct);return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border)"><span>${o.title}</span><span style="font-weight:500;color:${color}">${pct}%</span></div>`;}).join('')}
+      <div style="font-size:10px;color:var(--muted);margin-top:12px">${txns.length} ${lang==='en'?'transactions':lang==='pt'?'transações':'transacciones'} · ${debts.length} ${lang==='en'?'debts':lang==='pt'?'dívidas':'deudas'}</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+// EXCEL EXPORT
+// ══════════════════════════════════════════════
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  // Txns
+  const txnData=[[t('col_date'),t('col_desc'),t('col_cat'),t('col_type'),t('col_amount')]];
+  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(tx=>{txnData.push([tx.date,tx.desc,tx.cat,tx.type==='ingreso'?t('opt_income'):t('opt_expense'),tx.type==='ingreso'?tx.amount:-tx.amount]);});
+  const ws1=XLSX.utils.aoa_to_sheet(txnData); ws1['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws1,lang==='en'?'Transactions':'Transacciones');
+  // Debts
+  const debtData=[[t('col_entity'),t('f_debt_type'),t('f_card_brand'),t('f_balance'),t('f_limit'),t('f_monthly'),t('f_due_date'),t('f_interest')]];
+  debts.forEach(d=>{debtData.push([d.entity,debtTypeName(d.type),d.brand,d.balance,d.limit||0,d.monthlyPay,d.dueDate||'',d.rate+'%']);});
+  const ws2=XLSX.utils.aoa_to_sheet(debtData); ws2['!cols']=[{wch:16},{wch:18},{wch:12},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,lang==='en'?'Debts':'Deudas');
+  // OKR
+  const okrData=[[lang==='en'?'Objective':'Objetivo',lang==='en'?'Cycle':'Ciclo','Key Result',lang==='en'?'Current':lang==='pt'?'Atual':'Actual',lang==='en'?'Target':lang==='pt'?'Meta':'Meta','%']];
+  objectives.forEach(o=>{o.krs.forEach((kr,i)=>{okrData.push([i===0?o.title:'',i===0?o.cycle:'',kr.name,kr.current,kr.target,Math.min(100,Math.round(kr.current/kr.target*100))+'%']);});});
+  const ws3=XLSX.utils.aoa_to_sheet(okrData); ws3['!cols']=[{wch:40},{wch:10},{wch:40},{wch:14},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws3,'OKRs');
+  XLSX.writeFile(wb,'finanzas_okr_'+new Date().toISOString().slice(0,7)+'.xlsx');
+  toast('✓ Excel '+(lang==='en'?'downloaded':lang==='pt'?'baixado':'descargado'));
+}
+function exportExcelTxns(){
+  const wb=XLSX.utils.book_new();
+  const txnData=[[t('col_date'),t('col_desc'),t('col_cat'),t('col_type'),t('col_amount')]];
+  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(tx=>{txnData.push([tx.date,tx.desc,tx.cat,tx.type==='ingreso'?t('opt_income'):t('opt_expense'),tx.type==='ingreso'?tx.amount:-tx.amount]);});
+  const ws=XLSX.utils.aoa_to_sheet(txnData); ws['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws,lang==='en'?'Transactions':'Transacciones');
+  XLSX.writeFile(wb,'transactions_'+new Date().toISOString().slice(0,7)+'.xlsx');
+  toast('✓ '+(lang==='en'?'Transactions exported':lang==='pt'?'Transações exportadas':'Transacciones exportadas'));
+}
+
+// ══════════════════════════════════════════════
+// PDF EXPORT
+// ══════════════════════════════════════════════
+function exportPDF(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const now=new Date(); const mt=getMonthTxns();
+  const inc=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const exp=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const totalDebt=debts.reduce((s,d)=>s+d.balance,0);
+  const W=210,M=18; let y=20;
+  // Header
+  doc.setFillColor(14,14,12); doc.rect(0,0,W,15,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('finance+okr',M,10);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(now.toLocaleDateString(lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY',{month:'long',year:'numeric'}),W-M,10,'right');
+  y=28;
+  // Metrics
+  doc.setTextColor(14,14,12); doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text(lang==='en'?'Financial summary':'Resumen financiero',M,y); y+=8;
+  [[t('m_income'),fmt(inc),[39,122,74]],[t('m_expenses'),fmt(exp),[192,57,43]],[t('total_debt'),fmt(totalDebt),[184,122,15]],['Balance',fmt(inc-exp),[14,14,12]]].forEach((b,i)=>{
+    const bx=M+i*47; doc.setFillColor(248,248,248); doc.roundedRect(bx,y,44,18,2,2,'F'); doc.setDrawColor(220,220,220); doc.roundedRect(bx,y,44,18,2,2,'S');
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,120); doc.text(b[0],bx+22,y+5.5,'center');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...b[2]); doc.text(b[1],bx+22,y+12.5,'center');
+  }); y+=25;
+  // Debts
+  doc.setTextColor(14,14,12); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text(lang==='en'?'Debts':'Deudas',M,y); y+=6;
+  doc.setFillColor(240,240,240); doc.rect(M,y,W-2*M,5.5,'F');
+  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(80,80,80);
+  [[t('col_entity'),40],[t('f_debt_type'),36],[t('balance_label'),30],[t('monthly_label'),28],[t('rate_label'),20]].reduce((cx,col)=>{doc.text(col[0],cx+1,y+4);return cx+col[1]},M); y+=6;
+  debts.forEach((d,idx)=>{
+    if(idx%2===0){doc.setFillColor(252,252,252); doc.rect(M,y-1,W-2*M,5.5,'F');}
+    doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40);
+    [[d.entity,40],[debtTypeName(d.type),36],[fmtN(d.balance),30],[fmtN(d.monthlyPay),28],[d.rate+'%',20]].reduce((cx,col)=>{doc.text(String(col[0]),cx+1,y+4);return cx+col[1]},M); y+=5.5;
+  }); y+=8;
+  // OKRs
+  if(y<230){ doc.setTextColor(14,14,12); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('OKRs',M,y); y+=6;
+    objectives.forEach(o=>{
+      const pct=getObjPct(o); const color=pct>=70?[29,158,117]:pct>=40?[184,122,15]:[216,90,48];
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(14,14,12); doc.text(o.title.slice(0,60),M,y);
+      doc.setTextColor(...color); doc.text(pct+'%',W-M,y,'right'); y+=5;
+      doc.setFillColor(230,230,230); doc.roundedRect(M,y,(W-2*M-20),2,1,1,'F');
+      doc.setFillColor(...color); doc.roundedRect(M,y,(W-2*M-20)*pct/100,2,1,1,'F'); y+=7;
+    });
+  }
+  // Footer
+  doc.setFillColor(245,245,243); doc.rect(0,284,W,13,'F');
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(140,140,140);
+  doc.text('finance+okr MVP 2 · '+now.toLocaleDateString(),M,291); doc.text('1/1',W-M,291,'right');
+  doc.save('report_finanzas_okr_'+now.toISOString().slice(0,7)+'.pdf');
+  toast('✓ PDF '+(lang==='en'?'downloaded':lang==='pt'?'baixado':'descargado'));
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
 document.getElementById('txn-date').value=new Date().toISOString().split('T')[0];
 initData();
+applyTranslations();
 renderDashboard();
 </script>
 </body>
