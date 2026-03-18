@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>finance+okr — MVP 1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#ffffff;--bg-secondary:#f5f5f3;--bg-tertiary:#eeede9;
+  --text-primary:#1a1a18;--text-secondary:#73726c;--text-tertiary:#9c9a92;
+  --border-tertiary:rgba(0,0,0,0.12);--border-secondary:rgba(0,0,0,0.2);--border-primary:rgba(0,0,0,0.35);
+  --radius-md:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg-primary:#1e1e1c;--bg-secondary:#2a2a28;--bg-tertiary:#242422;
+  --text-primary:#e8e6de;--text-secondary:#9c9a92;--text-tertiary:#6b6963;
+  --border-tertiary:rgba(255,255,255,0.1);--border-secondary:rgba(255,255,255,0.18);--border-primary:rgba(255,255,255,0.3);
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg-tertiary);color:var(--text-primary);min-height:100vh;font-size:14px}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:210px;flex-shrink:0;background:var(--bg-primary);border-right:0.5px solid var(--border-tertiary);display:flex;flex-direction:column;padding:16px 0}
+.logo{padding:0 18px 22px;font-size:16px;font-weight:600;letter-spacing:-0.4px;color:var(--text-primary)}
+.logo span{color:var(--text-secondary);font-weight:400}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;cursor:pointer;color:var(--text-secondary);border-left:2px solid transparent;transition:background 0.15s,color 0.15s;user-select:none}
+.nav-item:hover{background:var(--bg-secondary);color:var(--text-primary)}
+.nav-item.active{background:var(--bg-secondary);color:var(--text-primary);border-left:2px solid var(--text-primary)}
+.nav-icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.nav-section{font-size:10px;font-weight:600;color:var(--text-tertiary);letter-spacing:0.8px;padding:18px 18px 6px;text-transform:uppercase}
+.main{flex:1;overflow-y:auto;overflow-x:hidden}
+.page{display:none;padding:26px}
+.page.active{display:block}
+.page-title{font-size:21px;font-weight:600;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text-secondary);margin-bottom:26px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric-card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:14px 16px}
+.metric-label{font-size:10px;color:var(--text-secondary);margin-bottom:7px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.metric-value{font-size:21px;font-weight:600;margin-bottom:3px;letter-spacing:-0.5px}
+.metric-delta{font-size:11px;color:var(--text-secondary)}
+.metric-delta.up{color:#1a7a3f}
+.metric-delta.down{color:#c0392b}
+.row{display:grid;gap:12px;margin-bottom:24px}
+.row2{grid-template-columns:1fr 1fr}
+.row3{grid-template-columns:2fr 1fr}
+.card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:18px}
+.card-title{font-size:12px;font-weight:600;margin-bottom:16px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px}
+.chart-wrap{position:relative;width:100%;height:185px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--text-secondary);padding:6px 0;border-bottom:0.5px solid var(--border-tertiary);letter-spacing:0.4px;text-transform:uppercase}
+td{padding:10px 0;border-bottom:0.5px solid var(--border-tertiary);color:var(--text-primary)}
+td:last-child,th:last-child{text-align:right}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(26,122,63,0.1);color:#1a7a3f}
+.badge-red{background:rgba(192,57,43,0.1);color:#c0392b}
+.section-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.btn{padding:7px 16px;font-size:12px;font-weight:500;border:0.5px solid var(--border-secondary);border-radius:var(--radius-md);background:transparent;color:var(--text-primary);cursor:pointer;transition:background 0.15s;font-family:inherit}
+.btn:hover{background:var(--bg-secondary)}
+.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--text-primary);color:var(--bg-primary);border-color:var(--text-primary)}
+.btn-primary:hover{opacity:0.85}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.form-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;color:var(--text-secondary);font-weight:600;letter-spacing:0.2px}
+input,select{width:100%;padding:8px 10px;border:0.5px solid var(--border-secondary);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-family:inherit;transition:border-color 0.15s}
+input:focus,select:focus{outline:none;border-color:var(--border-primary);box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
+.cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.okr-list{display:flex;flex-direction:column;gap:12px}
+.obj-card{background:var(--bg-primary);border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);overflow:hidden}
+.obj-header{padding:14px 18px;display:flex;align-items:center;gap:12px}
+.obj-title{font-size:14px;font-weight:500;flex:1}
+.obj-cycle{font-size:11px;color:var(--text-secondary);margin-top:2px}
+.obj-pct{font-size:13px;font-weight:600;min-width:36px;text-align:right}
+.progress-wrap{height:4px;background:var(--bg-secondary);border-radius:2px;flex:1;overflow:hidden}
+.progress-bar{height:100%;border-radius:2px;transition:width 0.4s ease}
+.kr-list{padding:0 18px 14px;border-top:0.5px solid var(--border-tertiary)}
+.kr-item{padding:10px 0;border-bottom:0.5px solid var(--border-tertiary)}
+.kr-item:last-child{border-bottom:none}
+.kr-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.kr-name{font-size:12px;flex:1;color:var(--text-primary)}
+.kr-val{font-size:11px;color:var(--text-secondary);white-space:nowrap}
+.kr-bar-wrap{height:3px;background:var(--bg-secondary);border-radius:2px;overflow:hidden}
+.kr-bar{height:100%;border-radius:2px;transition:width 0.4s ease}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.budget-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border-tertiary)}
+.budget-row:last-child{border-bottom:none}
+.budget-label{font-size:13px;flex:1;display:flex;align-items:center;gap:6px}
+.budget-used{font-size:11px;color:var(--text-secondary);min-width:90px;text-align:right}
+.budget-bar-wrap{flex:1;height:4px;background:var(--bg-secondary);border-radius:2px;overflow:hidden;max-width:130px}
+.budget-bar{height:100%;border-radius:2px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:100;display:none;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-tertiary);padding:26px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:20px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}
+.export-panel{background:var(--bg-secondary);border-radius:var(--radius-lg);padding:18px;margin-bottom:16px;border:0.5px solid var(--border-tertiary)}
+.export-title{font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.8px}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:var(--bg-primary);padding:10px 20px;border-radius:var(--radius-md);font-size:13px;opacity:0;transition:opacity 0.3s;z-index:200;pointer-events:none;font-weight:500}
+.toast.show{opacity:1}
+.preview-box{border:0.5px solid var(--border-tertiary);border-radius:var(--radius-lg);padding:22px;max-width:520px;background:var(--bg-secondary)}
+.empty-state{text-align:center;padding:44px;color:var(--text-secondary);font-size:13px}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="app">
+  <div class="sidebar">
+    <div class="logo">finance<span>+okr</span></div>
+    <div class="nav-section">Finanzas</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span>Dashboard</div>
+    <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span>Transacciones</div>
+    <div class="nav-item" onclick="nav('presupuesto',this)"><span class="nav-icon">⊟</span>Presupuestos</div>
+    <div class="nav-section">Objetivos</div>
+    <div class="nav-item" onclick="nav('okr',this)"><span class="nav-icon">◎</span>OKRs</div>
+    <div class="nav-item" onclick="nav('okr-fin',this)"><span class="nav-icon">⊕</span>OKRs Financieros</div>
+    <div class="nav-section">Reportes</div>
+    <div class="nav-item" onclick="nav('exportar',this)"><span class="nav-icon">↓</span>Exportar</div>
+  </div>
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="dash-date"></div>
+      <div class="metrics" id="metrics-grid"></div>
+      <div class="row row3">
+        <div class="card">
+          <div class="section-bar"><span class="card-title" style="margin:0">Ingresos vs Gastos</span></div>
+          <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="section-bar"><span class="card-title" style="margin:0">Por categoría</span></div>
+          <div class="chart-wrap"><canvas id="chart-cat"></canvas></div>
+        </div>
+      </div>
+      <div class="row row2">
+        <div class="card">
+          <div class="card-title">Últimas transacciones</div>
+          <table id="dash-txn-table"></table>
+        </div>
+        <div class="card">
+          <div class="card-title">OKRs — resumen</div>
+          <div id="dash-okr-summary"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACCIONES -->
+    <div class="page" id="p-txns">
+      <div class="page-title">Transacciones</div>
+      <div class="page-sub">Registrá tus ingresos y gastos</div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Descripción</label><input type="text" id="txn-desc" placeholder="Ej: Supermercado"></div>
+          <div class="form-group"><label class="form-label">Monto (₲)</label><input type="number" id="txn-amount" placeholder="0" min="0"></div>
+          <div class="form-group"><label class="form-label">Categoría</label>
+            <select id="txn-cat"><option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Entretenimiento</option><option>Servicios</option><option>Educación</option><option>Ropa</option><option>Salario</option><option>Otros</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Tipo</label>
+            <select id="txn-type"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="form-group" style="flex:1"><label class="form-label">Fecha</label><input type="date" id="txn-date"></div>
+          <button class="btn btn-primary" onclick="addTxn()">+ Agregar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-bar">
+          <span class="card-title" style="margin:0">Historial</span>
+          <select id="filter-cat" style="width:auto;font-size:12px;padding:5px 10px" onchange="renderTxnTable()">
+            <option value="">Todas las categorías</option><option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Entretenimiento</option><option>Servicios</option><option>Educación</option><option>Ropa</option><option>Salario</option><option>Otros</option>
+          </select>
+        </div>
+        <table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Monto</th></tr></thead>
+        <tbody id="txn-table-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- PRESUPUESTOS -->
+    <div class="page" id="p-presupuesto">
+      <div class="page-title">Presupuestos</div>
+      <div class="page-sub">Establecé límites mensuales por categoría</div>
+      <div class="row row2">
+        <div class="card">
+          <div class="card-title">Configurar límites</div>
+          <div id="budget-form"></div>
+          <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="saveBudgets()">Guardar presupuestos</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Estado del mes actual</div>
+          <div id="budget-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OKR -->
+    <div class="page" id="p-okr">
+      <div class="page-title">OKRs</div>
+      <div class="page-sub">Objetivos y resultados clave del trimestre</div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button class="btn btn-primary" onclick="openObjModal()">+ Nuevo objetivo</button>
+      </div>
+      <div class="okr-list" id="okr-list"></div>
+    </div>
+
+    <!-- OKR FINANCIEROS -->
+    <div class="page" id="p-okr-fin">
+      <div class="page-title">OKRs Financieros</div>
+      <div class="page-sub">Objetivos ligados directamente a tus datos reales</div>
+      <div class="okr-list" id="okr-fin-list"></div>
+    </div>
+
+    <!-- EXPORTAR -->
+    <div class="page" id="p-exportar">
+      <div class="page-title">Exportar</div>
+      <div class="page-sub">Descargá tus datos en Excel o PDF</div>
+      <div class="row row2" style="margin-bottom:24px">
+        <div class="export-panel">
+          <div class="export-title">Excel (.xlsx)</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">Genera un archivo con 3 hojas: Transacciones, Resumen mensual por categoría y OKRs con progreso.</p>
+          <div class="export-btns">
+            <button class="btn btn-primary" onclick="exportExcel()">↓ Excel completo</button>
+            <button class="btn" onclick="exportExcelTxns()">↓ Solo transacciones</button>
+          </div>
+        </div>
+        <div class="export-panel">
+          <div class="export-title">PDF</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">Reporte mensual A4 con métricas, presupuestos, OKRs y últimas transacciones. Listo para imprimir o compartir.</p>
+          <div class="export-btns">
+            <button class="btn btn-primary" onclick="exportPDF()">↓ Reporte PDF</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Vista previa del reporte</div>
+        <div id="pdf-preview"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal nuevo objetivo -->
+<div class="modal-overlay" id="obj-modal">
+  <div class="modal">
+    <div class="modal-title">Nuevo objetivo</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Título del objetivo</label><input type="text" id="new-obj-title" placeholder="Ej: Mejorar salud financiera este trimestre"></div>
+    <div class="form-group" style="margin-bottom:16px"><label class="form-label">Ciclo</label>
+      <select id="new-obj-cycle"><option>Q1 2025</option><option>Q2 2025</option><option>Q3 2025</option><option selected>Q4 2025</option><option>Q1 2026</option><option>Q2 2026</option></select>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;letter-spacing:0.3px;text-transform:uppercase">Key Results</div>
+    <div id="kr-inputs"></div>
+    <button class="btn" style="width:100%;margin-top:10px;font-size:12px" onclick="addKRInput()">+ Agregar KR</button>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeObjModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveObj()">Guardar objetivo</button>
+    </div>
+  </div>
+</div>
+
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ─── CONSTANTES ──────────────────────────────────────────────────
+const CATS=['Alimentación','Transporte','Salud','Entretenimiento','Servicios','Educación','Ropa','Salario','Otros'];
+const CAT_COLORS={
+  'Alimentación':'#3B8BD4','Transporte':'#EF9F27','Salud':'#1D9E75',
+  'Entretenimiento':'#D4537E','Servicios':'#7F77DD','Educación':'#D85A30',
+  'Ropa':'#BA7517','Salario':'#639922','Otros':'#888780'
+};
+
+// ─── ESTADO ──────────────────────────────────────────────────────
+let txns=[], budgets={}, objectives=[], krCount=0;
+let monthlyChart=null, catChart=null;
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+const fmt = n => '₲ ' + Math.round(n).toLocaleString('es-PY');
+const fmtNum = n => Math.round(n).toLocaleString('es-PY');
+const pad = n => String(n).padStart(2,'0');
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+function getThisMonthTxns(){
+  const now=new Date();
+  return txns.filter(t=>{
+    const d=new Date(t.date);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  });
+}
+
+function getObjPct(o){
+  if(!o.krs.length) return 0;
+  return Math.round(o.krs.reduce((s,kr)=>s+Math.min(100,kr.current/kr.target*100),0)/o.krs.length);
+}
+
+function pctColor(p){ return p>=70?'#1D9E75':p>=40?'#EF9F27':'#D85A30'; }
+
+// ─── DATOS INICIALES ─────────────────────────────────────────────
+function initData(){
+  const now=new Date(), m=now.getMonth()+1, y=now.getFullYear();
+  txns=[
+    {id:1,desc:'Salario mensual',amount:5800000,cat:'Salario',type:'ingreso',date:`${y}-${pad(m)}-01`},
+    {id:2,desc:'Supermercado Stock',amount:850000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-03`},
+    {id:3,desc:'Uber',amount:45000,cat:'Transporte',type:'gasto',date:`${y}-${pad(m)}-04`},
+    {id:4,desc:'Netflix + Spotify',amount:120000,cat:'Entretenimiento',type:'gasto',date:`${y}-${pad(m)}-05`},
+    {id:5,desc:'Farmacia',amount:65000,cat:'Salud',type:'gasto',date:`${y}-${pad(m)}-07`},
+    {id:6,desc:'Agua y luz',amount:210000,cat:'Servicios',type:'gasto',date:`${y}-${pad(m)}-08`},
+    {id:7,desc:'Restaurante familiar',amount:95000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-10`},
+    {id:8,desc:'Curso online',amount:180000,cat:'Educación',type:'gasto',date:`${y}-${pad(m)}-12`},
+    {id:9,desc:'Freelance diseño',amount:1200000,cat:'Salario',type:'ingreso',date:`${y}-${pad(m)}-14`},
+    {id:10,desc:'Verdulería',amount:55000,cat:'Alimentación',type:'gasto',date:`${y}-${pad(m)}-15`},
+  ];
+  budgets={Alimentación:1200000,Transporte:300000,Salud:200000,Entretenimiento:200000,Servicios:250000,Educación:300000,Ropa:150000,Otros:150000};
+  objectives=[
+    {id:1,title:'Reducir gastos variables en 20%',cycle:'Q4 2025',krs:[
+      {name:'Bajar entretenimiento a ₲150k/mes',current:120000,target:150000},
+      {name:'Máx 2 salidas a restaurantes por semana',current:6,target:8},
+    ]},
+    {id:2,title:'Construir fondo de emergencia',cycle:'Q1 2026',krs:[
+      {name:'Ahorrar ₲500k mensuales',current:320000,target:500000},
+      {name:'Llegar a ₲3M en cuenta de ahorro',current:1200000,target:3000000},
+    ]},
+  ];
+}
+
+// ─── NAVEGACIÓN ──────────────────────────────────────────────────
+function nav(p, el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  el.classList.add('active');
+  if(p==='dashboard') renderDashboard();
+  if(p==='txns') renderTxnTable();
+  if(p==='presupuesto') renderBudget();
+  if(p==='okr') renderOKR();
+  if(p==='okr-fin') renderOKRFin();
+  if(p==='exportar') renderExportPreview();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────
+function renderDashboard(){
+  const now=new Date();
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('es-PY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const mt=getThisMonthTxns();
+  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const balance=ingresos-gastos;
+  const ahorro=ingresos>0?Math.round(balance/ingresos*100):0;
+
+  document.getElementById('metrics-grid').innerHTML=`
+    <div class="metric-card"><div class="metric-label">Ingresos</div><div class="metric-value" style="color:#1a7a3f">${fmt(ingresos)}</div><div class="metric-delta">Este mes</div></div>
+    <div class="metric-card"><div class="metric-label">Gastos</div><div class="metric-value" style="color:#c0392b">${fmt(gastos)}</div><div class="metric-delta">Este mes</div></div>
+    <div class="metric-card"><div class="metric-label">Balance</div><div class="metric-value">${fmt(balance)}</div><div class="metric-delta ${balance>=0?'up':'down'}">${balance>=0?'▲ Positivo':'▼ Negativo'}</div></div>
+    <div class="metric-card"><div class="metric-label">Tasa de ahorro</div><div class="metric-value">${ahorro}%</div><div class="metric-delta">del ingreso mensual</div></div>
+  `;
+
+  // Gráfico barras mensual
+  const labels=[], gastosMes=[], ingresosMes=[];
+  for(let i=4;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    labels.push(d.toLocaleDateString('es-PY',{month:'short'}));
+    const mt2=txns.filter(t=>{const td=new Date(t.date);return td.getMonth()===d.getMonth()&&td.getFullYear()===d.getFullYear()});
+    gastosMes.push(mt2.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0));
+    ingresosMes.push(mt2.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0));
+  }
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart=new Chart(document.getElementById('chart-monthly'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Ingresos',data:ingresosMes,backgroundColor:'rgba(39,122,74,0.22)',borderColor:'rgba(39,122,74,0.65)',borderWidth:1,borderRadius:4},
+      {label:'Gastos',data:gastosMes,backgroundColor:'rgba(192,57,43,0.18)',borderColor:'rgba(192,57,43,0.55)',borderWidth:1,borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},
+        y:{grid:{color:'rgba(128,128,128,0.08)'},ticks:{font:{size:10},color:'#888',callback:v=>v>=1000000?'₲'+(v/1000000).toFixed(1)+'M':'₲'+(v/1000).toFixed(0)+'k'}}}}
+  });
+
+  // Gráfico donut categorías
+  const catTotals={};
+  mt.filter(t=>t.type==='gasto').forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount});
+  const cL=Object.keys(catTotals), cD=Object.values(catTotals), cC=cL.map(c=>CAT_COLORS[c]||'#888');
+  if(catChart) catChart.destroy();
+  catChart=new Chart(document.getElementById('chart-cat'),{
+    type:'doughnut',
+    data:{labels:cL,datasets:[{data:cD,backgroundColor:cC,borderWidth:2,borderColor:'var(--bg-primary)'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10,padding:8}}}}
+  });
+
+  // Últimas transacciones
+  const last5=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  document.getElementById('dash-txn-table').innerHTML='<thead><tr><th>Descripción</th><th>Categoría</th><th>Monto</th></tr></thead><tbody>'+
+    last5.map(t=>`<tr>
+      <td>${t.desc}</td>
+      <td><span class="cat-dot" style="background:${CAT_COLORS[t.cat]||'#888'}"></span>${t.cat}</td>
+      <td style="color:${t.type==='ingreso'?'#1a7a3f':'#c0392b'};font-weight:600">${t.type==='ingreso'?'+':'-'}${fmt(t.amount)}</td>
+    </tr>`).join('')+'</tbody>';
+
+  // OKR resumen
+  document.getElementById('dash-okr-summary').innerHTML=objectives.map(o=>{
+    const pct=getObjPct(o); const color=pctColor(pct);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+        <span>${o.title}</span><span style="font-weight:600;color:${color}">${pct}%</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${o.cycle}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── TRANSACCIONES ───────────────────────────────────────────────
+function renderTxnTable(){
+  const fc=document.getElementById('filter-cat').value;
+  const filtered=[...txns].filter(t=>!fc||t.cat===fc).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('txn-table-body').innerHTML=filtered.map(t=>`
+    <tr>
+      <td>${new Date(t.date).toLocaleDateString('es-PY')}</td>
+      <td>${t.desc}</td>
+      <td><span class="cat-dot" style="background:${CAT_COLORS[t.cat]||'#888'}"></span>${t.cat}</td>
+      <td><span class="badge ${t.type==='ingreso'?'badge-green':'badge-red'}">${t.type==='ingreso'?'Ingreso':'Gasto'}</span></td>
+      <td style="color:${t.type==='ingreso'?'#1a7a3f':'#c0392b'};font-weight:600">${t.type==='ingreso'?'+':'-'}${fmt(t.amount)}</td>
+    </tr>`).join('');
+}
+
+function addTxn(){
+  const desc=document.getElementById('txn-desc').value.trim();
+  const amount=parseFloat(document.getElementById('txn-amount').value);
+  const cat=document.getElementById('txn-cat').value;
+  const type=document.getElementById('txn-type').value;
+  const date=document.getElementById('txn-date').value;
+  if(!desc||!amount||!date){alert('Completá todos los campos');return;}
+  txns.push({id:Date.now(),desc,amount,cat,type,date});
+  document.getElementById('txn-desc').value='';
+  document.getElementById('txn-amount').value='';
+  renderTxnTable();
+  toast('✓ Transacción agregada');
+}
+
+// ─── PRESUPUESTOS ────────────────────────────────────────────────
+function renderBudget(){
+  document.getElementById('budget-form').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>`
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label"><span class="cat-dot" style="background:${CAT_COLORS[c]}"></span>${c}</label>
+      <input type="number" id="b-${c}" value="${budgets[c]||0}" min="0">
+    </div>`).join('');
+
+  const mt=getThisMonthTxns();
+  document.getElementById('budget-status').innerHTML=CATS.filter(c=>c!=='Salario').map(c=>{
+    const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
+    const bud=budgets[c]||0;
+    const pct=bud>0?Math.min(100,Math.round(spent/bud*100)):0;
+    const over=spent>bud&&bud>0;
+    const color=over?'#c0392b':pct>70?'#EF9F27':'#1D9E75';
+    return `<div class="budget-row">
+      <div class="budget-label"><span class="cat-dot" style="background:${CAT_COLORS[c]}"></span>${c}</div>
+      <div class="budget-bar-wrap"><div class="budget-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="budget-used" style="color:${over?'#c0392b':'var(--text-secondary)'}">
+        ${fmt(spent)} / ${fmt(bud)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveBudgets(){
+  CATS.filter(c=>c!=='Salario').forEach(c=>{
+    const v=parseFloat(document.getElementById('b-'+c).value);
+    if(!isNaN(v)) budgets[c]=v;
+  });
+  renderBudget();
+  toast('✓ Presupuestos guardados');
+}
+
+// ─── OKR ─────────────────────────────────────────────────────────
+function renderOKR(){
+  const el=document.getElementById('okr-list');
+  if(!objectives.length){
+    el.innerHTML='<div class="card empty-state">No hay objetivos aún. Creá tu primer OKR.</div>';return;
+  }
+  el.innerHTML=objectives.map((o,oi)=>{
+    const pct=getObjPct(o); const color=pctColor(pct);
+    return `<div class="obj-card">
+      <div class="obj-header">
+        <div style="flex:1">
+          <div class="obj-title">${o.title}</div>
+          <div class="obj-cycle">${o.cycle}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:200px">
+          <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div class="obj-pct" style="color:${color}">${pct}%</div>
+        </div>
+      </div>
+      <div class="kr-list">${o.krs.map((kr,ki)=>{
+        const kpct=Math.min(100,Math.round(kr.current/kr.target*100));
+        const kc=pctColor(kpct);
+        return `<div class="kr-item">
+          <div class="kr-top">
+            <div class="status-dot" style="background:${kc}"></div>
+            <div class="kr-name">${kr.name}</div>
+            <div class="kr-val">${kr.current.toLocaleString()} / ${kr.target.toLocaleString()} — ${kpct}%</div>
+            <input type="number" style="width:95px;font-size:11px;padding:4px 8px" value="${kr.current}" onchange="updateKR(${oi},${ki},this.value)">
+          </div>
+          <div class="kr-bar-wrap"><div class="kr-bar" style="width:${kpct}%;background:${kc}"></div></div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateKR(oi,ki,val){
+  objectives[oi].krs[ki].current=parseFloat(val)||0;
+  renderOKR();
+}
+
+// ─── OKR FINANCIEROS ─────────────────────────────────────────────
+function renderOKRFin(){
+  const mt=getThisMonthTxns();
+  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const ahorro=ingresos-gastos;
+  const entret=mt.filter(t=>t.type==='gasto'&&t.cat==='Entretenimiento').reduce((s,t)=>s+t.amount,0);
+
+  const finOkrs=[
+    {title:'Tasa de ahorro mensual ≥ 20%',desc:'Ahorrar al menos el 20% del ingreso',current:ingresos>0?ahorro/ingresos*100:0,target:20,suffix:'%',note:'Calculado automáticamente con tus datos reales'},
+    {title:'Control de entretenimiento ≤ ₲200k',desc:'Mantener gasto en entretenimiento bajo control',current:entret/1000,target:200,suffix:'k',note:'Basado en transacciones del mes actual',inverted:true},
+    {title:'Ingresos mensuales ≥ ₲6M',desc:'Alcanzar ingresos totales de ₲6 millones',current:ingresos/1000000,target:6,suffix:'M',note:'Suma de ingresos reales del mes'},
+  ];
+
+  document.getElementById('okr-fin-list').innerHTML=finOkrs.map(o=>{
+    const raw=o.inverted?Math.max(0,100-(o.current/o.target*100)):Math.min(100,o.current/o.target*100);
+    const pct=Math.round(raw); const color=pctColor(pct);
+    return `<div class="obj-card">
+      <div class="obj-header" style="cursor:default">
+        <div style="flex:1">
+          <div class="obj-title">${o.title}</div>
+          <div class="obj-cycle">${o.desc}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:200px">
+          <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div class="obj-pct" style="color:${color}">${pct}%</div>
+        </div>
+      </div>
+      <div class="kr-list">
+        <div class="kr-item">
+          <div class="kr-top">
+            <div class="status-dot" style="background:${color}"></div>
+            <div class="kr-name">${o.note}</div>
+            <div class="kr-val">${o.current.toFixed(1)}${o.suffix} / ${o.target}${o.suffix}</div>
+          </div>
+          <div class="kr-bar-wrap"><div class="kr-bar" style="width:${pct}%;background:${color}"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── EXPORTAR — VISTA PREVIA ──────────────────────────────────────
+function renderExportPreview(){
+  const mt=getThisMonthTxns();
+  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const now=new Date();
+  const mesNombre=now.toLocaleDateString('es-PY',{month:'long',year:'numeric'});
+  document.getElementById('pdf-preview').innerHTML=`
+    <div class="preview-box">
+      <div style="font-size:15px;font-weight:600;margin-bottom:3px">Reporte mensual — ${mesNombre}</div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:18px">finance+okr MVP 1</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Ingresos</div><div style="font-size:15px;font-weight:600;color:#1a7a3f">${fmt(ingresos)}</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Gastos</div><div style="font-size:15px;font-weight:600;color:#c0392b">${fmt(gastos)}</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px">Balance</div><div style="font-size:15px;font-weight:600">${fmt(ingresos-gastos)}</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Estado OKRs</div>
+      ${objectives.map(o=>{
+        const pct=getObjPct(o); const color=pctColor(pct);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border-tertiary)">
+          <span>${o.title}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:80px;height:3px;background:var(--bg-tertiary);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>
+            <span style="font-weight:600;color:${color};min-width:28px;text-align:right">${pct}%</span>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:14px">${txns.length} transacciones registradas</div>
+    </div>`;
+}
+
+// ─── EXPORTAR EXCEL ───────────────────────────────────────────────
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+
+  // Hoja 1: Transacciones
+  const txnData=[['Fecha','Descripción','Categoría','Tipo','Monto (₲)']];
+  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+    txnData.push([t.date, t.desc, t.cat, t.type==='ingreso'?'Ingreso':'Gasto', t.type==='ingreso'?t.amount:-t.amount]);
+  });
+  const ws1=XLSX.utils.aoa_to_sheet(txnData);
+  ws1['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Transacciones');
+
+  // Hoja 2: Resumen mensual
+  const mt=getThisMonthTxns();
+  const sumData=[['Categoría','Presupuesto (₲)','Gastado (₲)','Diferencia (₲)','% Usado']];
+  CATS.filter(c=>c!=='Salario').forEach(c=>{
+    const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
+    const bud=budgets[c]||0;
+    const pct=bud>0?Math.round(spent/bud*100):0;
+    sumData.push([c, bud, spent, bud-spent, pct+'%']);
+  });
+  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  sumData.push([]);
+  sumData.push(['TOTAL INGRESOS','','',ingresos,'']);
+  sumData.push(['TOTAL GASTOS','','',gastos,'']);
+  sumData.push(['BALANCE NETO','','',ingresos-gastos,'']);
+  const ws2=XLSX.utils.aoa_to_sheet(sumData);
+  ws2['!cols']=[{wch:18},{wch:18},{wch:16},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen mensual');
+
+  // Hoja 3: OKRs
+  const okrData=[['Objetivo','Ciclo','Key Result','Actual','Meta','Progreso %']];
+  objectives.forEach(o=>{
+    if(!o.krs.length){okrData.push([o.title,o.cycle,'—','','','']);return;}
+    o.krs.forEach((kr,i)=>{
+      const pct=Math.min(100,Math.round(kr.current/kr.target*100));
+      okrData.push([i===0?o.title:'', i===0?o.cycle:'', kr.name, kr.current, kr.target, pct+'%']);
+    });
+  });
+  const ws3=XLSX.utils.aoa_to_sheet(okrData);
+  ws3['!cols']=[{wch:40},{wch:10},{wch:40},{wch:14},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws3,'OKRs');
+
+  XLSX.writeFile(wb,'finanzas_okr_'+new Date().toISOString().slice(0,7)+'.xlsx');
+  toast('✓ Excel descargado correctamente');
+}
+
+function exportExcelTxns(){
+  const wb=XLSX.utils.book_new();
+  const txnData=[['Fecha','Descripción','Categoría','Tipo','Monto (₲)']];
+  [...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+    txnData.push([t.date, t.desc, t.cat, t.type==='ingreso'?'Ingreso':'Gasto', t.type==='ingreso'?t.amount:-t.amount]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(txnData);
+  ws['!cols']=[{wch:12},{wch:30},{wch:16},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws,'Transacciones');
+  XLSX.writeFile(wb,'transacciones_'+new Date().toISOString().slice(0,7)+'.xlsx');
+  toast('✓ Transacciones exportadas');
+}
+
+// ─── EXPORTAR PDF ─────────────────────────────────────────────────
+function exportPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const now=new Date();
+  const mesNombre=now.toLocaleDateString('es-PY',{month:'long',year:'numeric'});
+  const mt=getThisMonthTxns();
+  const ingresos=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const gastos=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+  const balance=ingresos-gastos;
+  const ahorro=ingresos>0?Math.round(balance/ingresos*100):0;
+  const W=210, M=18;
+  let y=20;
+
+  // Header
+  doc.setFillColor(20,20,20);
+  doc.rect(0,0,W,15,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('finance+okr',M,10);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('Reporte mensual — '+mesNombre,W-M,10,'right');
+  y=28;
+
+  // Métricas
+  doc.setTextColor(30,30,30);
+  doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('Resumen financiero',M,y);y+=9;
+  const boxes=[
+    {label:'Ingresos',value:fmt(ingresos),r:39,g:122,b:74},
+    {label:'Gastos',value:fmt(gastos),r:192,g:57,b:43},
+    {label:'Balance',value:fmt(balance),r:30,g:30,b:30},
+    {label:'Tasa de ahorro',value:ahorro+'%',r:30,g:30,b:30},
+  ];
+  const bw=42, bh=20, gap=3; let bx=M;
+  boxes.forEach(b=>{
+    doc.setFillColor(248,248,248);
+    doc.roundedRect(bx,y,bw,bh,2,2,'F');
+    doc.setDrawColor(220,220,220);
+    doc.roundedRect(bx,y,bw,bh,2,2,'S');
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
+    doc.text(b.label,bx+bw/2,y+6,'center');
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(b.r,b.g,b.b);
+    doc.text(b.value,bx+bw/2,y+14,'center');
+    bx+=bw+gap;
+  });
+  y+=bh+12;
+
+  // Presupuestos
+  doc.setTextColor(30,30,30);
+  doc.setFontSize(12);doc.setFont('helvetica','bold');
+  doc.text('Presupuestos — Estado del mes',M,y);y+=7;
+  const cols=['Categoría','Presupuesto','Gastado','Diferencia','% Usado'];
+  const colW=[40,30,28,28,22];
+  doc.setFillColor(240,240,240);
+  doc.rect(M,y,W-2*M,6,'F');
+  doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(80,80,80);
+  let cx=M;
+  cols.forEach((c,i)=>{doc.text(c,cx+1.5,y+4);cx+=colW[i];});
+  y+=7;
+  CATS.filter(c=>c!=='Salario').forEach((c,idx)=>{
+    const spent=mt.filter(t=>t.type==='gasto'&&t.cat===c).reduce((s,t)=>s+t.amount,0);
+    const bud=budgets[c]||0;
+    const pct=bud>0?Math.round(spent/bud*100):0;
+    const over=spent>bud&&bud>0;
+    if(idx%2===0){doc.setFillColor(252,252,252);doc.rect(M,y-1,W-2*M,6,'F');}
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(over?192:30,over?57:30,over?43:30);
+    cx=M;
+    [c,fmtNum(bud),fmtNum(spent),fmtNum(bud-spent),pct+'%'].forEach((v,i)=>{
+      doc.text(String(v),cx+1.5,y+4);cx+=colW[i];
+    });
+    y+=6;
+  });
+  y+=10;
+
+  // OKRs
+  doc.setTextColor(30,30,30);
+  doc.setFontSize(12);doc.setFont('helvetica','bold');
+  doc.text('OKRs — Estado actual',M,y);y+=7;
+  objectives.forEach(o=>{
+    const pct=getObjPct(o);
+    const color=pct>=70?[29,158,117]:pct>=40?[186,117,23]:[216,90,48];
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+    const titleW=W-2*M-25;
+    doc.text(o.title.length>60?o.title.slice(0,58)+'…':o.title,M,y);
+    doc.setTextColor(...color);
+    doc.text(pct+'%',W-M,y,'right');
+    y+=5;
+    doc.setFillColor(230,230,230);
+    doc.roundedRect(M,y,W-2*M-20,2.5,1,1,'F');
+    doc.setFillColor(...color);
+    doc.roundedRect(M,y,(W-2*M-20)*pct/100,2.5,1,1,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
+    doc.text(o.cycle,M,y+6);
+    y+=9;
+    o.krs.forEach(kr=>{
+      const kpct=Math.min(100,Math.round(kr.current/kr.target*100));
+      doc.setFontSize(7.5);doc.setTextColor(80,80,80);
+      const krText='• '+(kr.name.length>55?kr.name.slice(0,53)+'…':kr.name);
+      doc.text(krText,M+4,y);
+      doc.text(kpct+'%',W-M,y,'right');
+      y+=5;
+    });
+    y+=5;
+  });
+
+  // Últimas transacciones
+  if(y<220){
+    doc.setTextColor(30,30,30);
+    doc.setFontSize(12);doc.setFont('helvetica','bold');
+    doc.text('Últimas transacciones',M,y);y+=7;
+    const last8=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+    const tCols=['Fecha','Descripción','Categoría','Tipo','Monto'];
+    const tColW=[22,54,28,18,28];
+    doc.setFillColor(240,240,240);
+    doc.rect(M,y,W-2*M,5.5,'F');
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(80,80,80);
+    cx=M;
+    tCols.forEach((c,i)=>{doc.text(c,cx+1,y+4);cx+=tColW[i];});
+    y+=6;
+    last8.forEach((t,idx)=>{
+      if(idx%2===0){doc.setFillColor(252,252,252);doc.rect(M,y-1,W-2*M,5.5,'F');}
+      doc.setFont('helvetica','normal');
+      const isI=t.type==='ingreso';
+      cx=M;
+      const vals=[
+        t.date,
+        t.desc.length>30?t.desc.slice(0,28)+'…':t.desc,
+        t.cat,
+        isI?'Ingreso':'Gasto',
+        (isI?'+':'-')+fmtNum(t.amount)
+      ];
+      vals.forEach((v,i)=>{
+        doc.setTextColor(i===4?(isI?39:192):30, i===4?(isI?122:57):30, i===4?(isI?74:43):30);
+        doc.text(String(v),cx+1,y+4);cx+=tColW[i];
+      });
+      y+=5.5;
+    });
+  }
+
+  // Footer
+  doc.setFillColor(245,245,243);
+  doc.rect(0,284,W,13,'F');
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(140,140,140);
+  doc.text('Generado el '+now.toLocaleDateString('es-PY')+' · finance+okr MVP 1',M,291);
+  doc.text('Página 1 de 1',W-M,291,'right');
+
+  doc.save('reporte_finanzas_okr_'+now.toISOString().slice(0,7)+'.pdf');
+  toast('✓ PDF descargado correctamente');
+}
+
+// ─── MODAL OKR ────────────────────────────────────────────────────
+function openObjModal(){
+  document.getElementById('obj-modal').classList.add('open');
+  krCount=0;
+  document.getElementById('kr-inputs').innerHTML='';
+  document.getElementById('new-obj-title').value='';
+  addKRInput();
+}
+function closeObjModal(){
+  document.getElementById('obj-modal').classList.remove('open');
+}
+function addKRInput(){
+  const d=document.createElement('div');
+  d.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:10px';
+  d.innerHTML='<input type="text" placeholder="Resultado clave"><input type="number" placeholder="Actual" min="0"><input type="number" placeholder="Meta" min="1">';
+  d.id='kr-row-'+(krCount++);
+  document.getElementById('kr-inputs').appendChild(d);
+}
+function saveObj(){
+  const title=document.getElementById('new-obj-title').value.trim();
+  const cycle=document.getElementById('new-obj-cycle').value;
+  if(!title){alert('Ingresá el título del objetivo');return;}
+  const krs=[];
+  document.querySelectorAll('[id^=kr-row-]').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    const name=inputs[0].value.trim();
+    const current=parseFloat(inputs[1].value)||0;
+    const target=parseFloat(inputs[2].value)||1;
+    if(name) krs.push({name,current,target});
+  });
+  objectives.push({id:Date.now(),title,cycle,krs});
+  closeObjModal();
+  renderOKR();
+  toast('✓ Objetivo creado');
+}
+
+// ─── INICIO ───────────────────────────────────────────────────────
+document.getElementById('txn-date').value=new Date().toISOString().split('T')[0];
+initData();
+renderDashboard();
+</script>
+</body>
+</html>
