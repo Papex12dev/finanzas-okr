@@ -2342,12 +2342,18 @@ function setUserDisplay(user){
 
 // ── SUPABASE AUTH LISTENER ────────────────────
 sb.auth.onAuthStateChange(async (event, session)=>{
-  if(session?.user){
-    currentUser=session.user;
-    setUserDisplay(currentUser);
-    await loadUserData(currentUser.id);
-  } else {
+  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){
+    if(session?.user){
+      currentUser=session.user;
+      setUserDisplay(currentUser);
+      // Clean URL after confirmation
+      if(window.location.hash) history.replaceState(null,'',window.location.pathname);
+      await loadUserData(currentUser.id);
+    }
+  } else if(event==='SIGNED_OUT'){
     showScreen('auth');
+  } else if(event==='USER_UPDATED'){
+    currentUser=session.user;
   }
 });
 
@@ -2355,10 +2361,26 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
-// Check existing session
-sb.auth.getSession().then(({data:{session}})=>{
+
+// Handle email confirmation tokens in URL hash
+(async()=>{
+  const hash=window.location.hash;
+  if(hash&&hash.includes('access_token')){
+    // Supabase puts tokens in hash after email confirmation
+    showScreen('loading');
+    const {data,error}=await sb.auth.getSession();
+    if(data?.session){
+      currentUser=data.session.user;
+      setUserDisplay(currentUser);
+      history.replaceState(null,'',window.location.pathname);
+      await loadUserData(currentUser.id);
+      return;
+    }
+  }
+  // Normal boot — check existing session
+  const {data:{session}}=await sb.auth.getSession();
   if(!session) showScreen('auth');
-});
+})();
 
 </script>
 </body>
