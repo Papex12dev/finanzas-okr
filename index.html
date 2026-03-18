@@ -470,23 +470,27 @@ select option{background:var(--card);color:var(--ink)}
   </div>
 </div>
 
-<!-- ═══ MODAL: NUEVA DEUDA ═══ -->
+<!-- ═══ MODAL: NUEVA / EDITAR DEUDA ═══ -->
 <div class="modal-overlay" id="debt-modal">
   <div class="modal">
-    <div class="modal-title" data-t="modal_debt_title">Nueva deuda</div>
+    <div class="modal-title" id="debt-modal-title">Nueva deuda</div>
+    <input type="hidden" id="d-edit-id" value="">
+
+    <!-- Tipo + Entidad -->
     <div class="form-row form-row-2">
-      <div class="form-group"><label class="form-label" data-t="f_debt_type">Tipo de deuda</label>
+      <div class="form-group"><label class="form-label">Tipo de deuda</label>
         <select id="d-type" onchange="toggleDebtFields()">
-          <option value="credit_card" data-t="opt_credit_card">Tarjeta de crédito</option>
-          <option value="bank_loan" data-t="opt_bank_loan">Préstamo bancario</option>
-          <option value="personal" data-t="opt_personal_loan">Préstamo personal</option>
-          <option value="auto" data-t="opt_auto">Crédito automotor</option>
-          <option value="mortgage" data-t="opt_mortgage">Hipotecario</option>
-          <option value="other" data-t="opt_other">Otro</option>
+          <option value="credit_card">Tarjeta de crédito</option>
+          <option value="bank_loan">Préstamo bancario</option>
+          <option value="personal">Préstamo personal</option>
+          <option value="auto">Crédito automotor</option>
+          <option value="mortgage">Hipotecario</option>
+          <option value="other">Otro</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label" data-t="f_entity">Entidad / Banco</label>
+      <div class="form-group"><label class="form-label">Entidad / Banco</label>
         <select id="d-entity">
+          <option value="Sudameris">Sudameris Bank</option>
           <option value="Bancop">Bancop</option>
           <option value="Itaú">Itaú</option>
           <option value="Santander">Santander</option>
@@ -505,10 +509,12 @@ select option{background:var(--card);color:var(--ink)}
       </div>
     </div>
     <div id="custom-entity-wrap" style="display:none;margin-bottom:14px">
-      <div class="form-group"><label class="form-label" data-t="f_custom_entity">Nombre de la entidad</label><input type="text" id="d-custom-entity" data-placeholder-t="f_custom_entity_ph"></div>
+      <div class="form-group"><label class="form-label">Nombre de la entidad</label><input type="text" id="d-custom-entity" placeholder="Ej: Banco XYZ"></div>
     </div>
-    <div class="form-row form-row-2">
-      <div class="form-group"><label class="form-label" data-t="f_card_brand">Marca / Red</label>
+
+    <!-- Marca + Moneda + Color -->
+    <div class="form-row form-row-3">
+      <div class="form-group"><label class="form-label">Marca / Red</label>
         <select id="d-brand">
           <option value="Visa">Visa</option>
           <option value="Mastercard">Mastercard</option>
@@ -520,7 +526,7 @@ select option{background:var(--card);color:var(--ink)}
           <option value="N/A">No aplica</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label" data-t="f_currency">Moneda</label>
+      <div class="form-group"><label class="form-label">Moneda</label>
         <select id="d-currency">
           <option value="PYG">₲ Guaraní (PYG)</option>
           <option value="USD">$ Dólar (USD)</option>
@@ -531,23 +537,54 @@ select option{background:var(--card);color:var(--ink)}
           <option value="MXN">$ Peso MX (MXN)</option>
         </select>
       </div>
+      <div class="form-group"><label class="form-label">Color de entidad</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 0">
+          <div id="color-presets" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+          <input type="color" id="d-color" value="#1a6b4a" style="width:32px;height:32px;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0">
+        </div>
+      </div>
     </div>
     <div id="custom-brand-wrap" style="display:none;margin-bottom:14px">
-      <div class="form-group"><label class="form-label" data-t="f_custom_brand">Nombre de la marca</label><input type="text" id="d-custom-brand"></div>
+      <div class="form-group"><label class="form-label">Nombre de la marca</label><input type="text" id="d-custom-brand"></div>
     </div>
+
+    <!-- Saldo + Límite -->
     <div class="form-row form-row-2">
-      <div class="form-group"><label class="form-label" data-t="f_balance">Saldo pendiente</label><input type="number" id="d-balance" placeholder="0" min="0"></div>
-      <div class="form-group" id="d-limit-wrap"><label class="form-label" data-t="f_limit">Límite de crédito</label><input type="number" id="d-limit" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Saldo pendiente</label><input type="number" id="d-balance" placeholder="0" min="0" oninput="calcMinPayment()"></div>
+      <div class="form-group" id="d-limit-wrap"><label class="form-label">Límite de crédito</label><input type="number" id="d-limit" placeholder="0" min="0"></div>
     </div>
+
+    <!-- Pago mínimo -->
+    <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;border:0.5px solid var(--border)">
+      <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Pago mínimo</div>
+      <div class="form-row form-row-3" style="margin-bottom:8px">
+        <div class="form-group"><label class="form-label">Método de cálculo</label>
+          <select id="d-min-method" onchange="calcMinPayment()">
+            <option value="fixed">Monto fijo</option>
+            <option value="pct">% del saldo</option>
+            <option value="pct_interest">% + interés</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Valor (%  o monto)</label>
+          <input type="number" id="d-min-value" placeholder="0" min="0" step="0.1" oninput="calcMinPayment()">
+        </div>
+        <div class="form-group"><label class="form-label">Pago mínimo calculado</label>
+          <input type="number" id="d-monthly-pay" placeholder="0" min="0" style="font-weight:500;background:white">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)" id="min-pay-hint">Ingresá el saldo y el método para calcular automáticamente, o escribí el monto directamente.</div>
+    </div>
+
+    <!-- Fecha + Tasa + Notas -->
     <div class="form-row form-row-3">
-      <div class="form-group"><label class="form-label" data-t="f_monthly">Cuota mensual</label><input type="number" id="d-monthly-pay" placeholder="0" min="0"></div>
-      <div class="form-group" id="d-due-wrap"><label class="form-label" data-t="f_due_date">Fecha de cierre</label><input type="date" id="d-due"></div>
-      <div class="form-group"><label class="form-label" data-t="f_interest">Tasa anual (%)</label><input type="number" id="d-rate" placeholder="0" min="0" step="0.1"></div>
+      <div class="form-group" id="d-due-wrap"><label class="form-label">Fecha de cierre</label><input type="date" id="d-due"></div>
+      <div class="form-group"><label class="form-label">Tasa anual (%)</label><input type="number" id="d-rate" placeholder="0" min="0" step="0.1" oninput="calcMinPayment()"></div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" id="d-notes" placeholder="Opcional"></div>
     </div>
-    <div class="form-group" style="margin-bottom:14px"><label class="form-label" data-t="f_notes">Notas</label><input type="text" id="d-notes" data-placeholder-t="f_notes_ph"></div>
+
     <div class="modal-footer">
-      <button class="btn" onclick="closeDebtModal()" data-t="cancel">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveDebt()" data-t="save">Guardar deuda</button>
+      <button class="btn" onclick="closeDebtModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDebt()" id="debt-save-btn">Guardar deuda</button>
     </div>
   </div>
 </div>
@@ -869,11 +906,11 @@ function initData(){
     ]},
   ];
   debts=[
-    {id:1,type:'credit_card',entity:'Itaú',brand:'Visa',currency:'PYG',balance:2800000,limit:8000000,monthlyPay:280000,dueDate:'2026-04-25',rate:32,notes:''},
-    {id:2,type:'credit_card',entity:'Santander',brand:'Mastercard',currency:'PYG',balance:1200000,limit:5000000,monthlyPay:120000,dueDate:'2026-04-18',rate:28,notes:''},
-    {id:3,type:'bank_loan',entity:'Bancop',brand:'N/A',currency:'PYG',balance:15000000,limit:0,monthlyPay:750000,dueDate:'2027-12-01',rate:18,notes:'Préstamo personal 36 cuotas'},
-    {id:4,type:'personal',entity:'Familiar',brand:'N/A',currency:'PYG',balance:2000000,limit:0,monthlyPay:500000,dueDate:'2026-08-01',rate:0,notes:'Dinero prestado de familiar'},
-    {id:5,type:'auto',entity:'Continental',brand:'N/A',currency:'PYG',balance:22000000,limit:0,monthlyPay:980000,dueDate:'2029-03-01',rate:14,notes:'Toyota Yaris 2022'},
+    {id:1,type:'credit_card',entity:'Sudameris',brand:'Mastercard',currency:'PYG',color:'#1a3a6b',balance:4900000,limit:45000000,monthlyPay:2300000,minMethod:'pct_interest',minValue:5,dueDate:'2026-04-25',rate:18.5,notes:'Tarjeta principal'},
+    {id:2,type:'credit_card',entity:'Itaú',brand:'Visa',currency:'PYG',color:'#FF6B00',balance:2800000,limit:8000000,monthlyPay:280000,minMethod:'pct',minValue:5,dueDate:'2026-04-18',rate:32,notes:''},
+    {id:3,type:'bank_loan',entity:'Bancop',brand:'N/A',currency:'PYG',color:'#1a6b4a',balance:15000000,limit:0,monthlyPay:750000,minMethod:'fixed',minValue:750000,dueDate:'',rate:18,notes:'Préstamo personal 36 cuotas'},
+    {id:4,type:'personal',entity:'Familiar',brand:'N/A',currency:'PYG',color:'#5b4fcf',balance:2000000,limit:0,monthlyPay:500000,minMethod:'fixed',minValue:500000,dueDate:'',rate:0,notes:'Dinero prestado de familiar'},
+    {id:5,type:'auto',entity:'Continental',brand:'N/A',currency:'PYG',color:'#185fa5',balance:22000000,limit:0,monthlyPay:980000,minMethod:'fixed',minValue:980000,dueDate:'',rate:14,notes:'Toyota Yaris 2022'},
   ];
 }
 
@@ -1082,18 +1119,21 @@ function renderDebts(){
     const availPct=isCard&&d.limit>0?Math.round((d.limit-d.balance)/d.limit*100):0;
     const usedPct2=isCard&&d.limit>0?Math.round(d.balance/d.limit*100):0;
     const barColor=usedPct2>70?'#c0392b':usedPct2>30?'#b87a0f':'#1a6b4a';
-    const entityColor=getEntityColor(d.entity);
+    const entityColor=d.color||getEntityColor(d.entity);
     return `<div class="debt-card">
       <div class="debt-card-header">
         <div class="debt-entity">
           <div class="debt-logo" style="background:${entityColor}">${initials(d.entity)}</div>
           <div>
-            <div class="debt-name">${d.entity}${d.brand!=='N/A'?' · '+d.brand:''}</div>
+            <div class="debt-name">${d.entity}${d.brand&&d.brand!=='N/A'?' · '+d.brand:''}</div>
             <div class="debt-type-tag">${debtTypeName(d.type)}${d.currency!=='PYG'?' · '+d.currency:''}</div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <button onclick="deleteDebt(${d.id})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 6px;border-radius:4px;transition:color 0.15s;line-height:1" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div style="display:flex;gap:4px">
+            <button onclick="openDebtModal(${d.id})" title="Editar" style="background:none;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);font-size:11px;padding:3px 8px;border-radius:4px;transition:all 0.15s;font-family:'DM Sans',sans-serif" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='none'">✎</button>
+            <button onclick="deleteDebt(${d.id})" title="Eliminar" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:3px 6px;border-radius:4px;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+          </div>
           <div class="debt-amount" style="color:var(--red)">${fmt(d.balance,d.currency)}</div>
           <div class="debt-amount-label">${t('balance_label')}</div>
         </div>
@@ -1105,14 +1145,14 @@ function renderDebts(){
             <span>${t('available_label')}: ${fmt(d.limit-d.balance,d.currency)}</span>
           </div>
           <div class="prog-wrap"><div class="prog-bar" style="width:${usedPct2}%;background:${barColor}"></div></div>
-        </div>`:isCard?'':''
+        </div>`:''
       }
       <div class="debt-footer">
-        ${d.monthlyPay?`<div class="debt-footer-item"><div class="debt-footer-label">${t('monthly_label')}</div><div class="debt-footer-value">${fmt(d.monthlyPay,d.currency)}</div></div>`:''}
+        ${d.monthlyPay?`<div class="debt-footer-item"><div class="debt-footer-label">Pago mín.</div><div class="debt-footer-value" style="color:var(--amber)">${fmt(d.monthlyPay,d.currency)}</div></div>`:''}
         ${isCard&&d.dueDate?`<div class="debt-footer-item"><div class="debt-footer-label">${t('due_label')}</div><div class="debt-footer-value">${d.dueDate.slice(5)}</div></div>`:''}
         ${d.rate?`<div class="debt-footer-item"><div class="debt-footer-label">${t('rate_label')}</div><div class="debt-footer-value">${d.rate}%</div></div>`:''}
         ${isCard&&d.limit?`<div class="debt-footer-item"><div class="debt-footer-label">${t('limit_label')}</div><div class="debt-footer-value">${fmt(d.limit,d.currency)}</div></div>`:''}
-        ${d.notes?`<div class="debt-footer-item" style="flex:1;text-align:left"><div class="debt-footer-label">Nota</div><div class="debt-footer-value" style="font-size:11px;color:var(--muted)">${d.notes}</div></div>`:''}
+        ${d.notes?`<div class="debt-footer-item" style="flex:1;text-align:left"><div class="debt-footer-label">Nota</div><div class="debt-footer-value" style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${d.notes}</div></div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1126,7 +1166,86 @@ function filterDebtType(type, el){
 }
 
 // Debt modal
-function openDebtModal(){ document.getElementById('debt-modal').classList.add('open'); toggleDebtFields(); }
+const COLOR_PRESETS=['#1a6b4a','#185fa5','#c0392b','#b87a0f','#5b4fcf','#D4537E','#EF9F27','#3B8BD4','#0e0e0c','#888780'];
+function initColorPresets(){
+  document.getElementById('color-presets').innerHTML=COLOR_PRESETS.map(c=>`
+    <div onclick="document.getElementById('d-color').value='${c}';highlightPreset('${c}')"
+      style="width:20px;height:20px;border-radius:50%;background:${c};cursor:pointer;border:2px solid transparent;transition:transform 0.1s;flex-shrink:0"
+      data-color="${c}" title="${c}"></div>`).join('');
+}
+function highlightPreset(color){
+  document.querySelectorAll('#color-presets div').forEach(el=>{
+    el.style.border=el.dataset.color===color?'2px solid var(--ink)':'2px solid transparent';
+    el.style.transform=el.dataset.color===color?'scale(1.2)':'scale(1)';
+  });
+}
+function calcMinPayment(){
+  const balance=parseFloat(document.getElementById('d-balance').value)||0;
+  const method=document.getElementById('d-min-method').value;
+  const val=parseFloat(document.getElementById('d-min-value').value)||0;
+  const rate=parseFloat(document.getElementById('d-rate').value)||0;
+  let minPay=0, hint='';
+  if(method==='fixed'){
+    minPay=val;
+    hint=val>0?`Pago fijo de ${fmtN(val)}`:'Ingresá el monto fijo.';
+  } else if(method==='pct'){
+    minPay=balance*val/100;
+    hint=balance>0&&val>0?`${val}% de ${fmtN(balance)} = ${fmtN(minPay)}`:'Ingresá el saldo y el porcentaje.';
+  } else if(method==='pct_interest'){
+    const interest=balance*rate/100/12;
+    minPay=balance*val/100+interest;
+    hint=balance>0?`${val}% saldo (${fmtN(balance*val/100)}) + interés mensual (${fmtN(interest)}) = ${fmtN(minPay)}`:'Ingresá el saldo, % y tasa.';
+  }
+  if(minPay>0) document.getElementById('d-monthly-pay').value=Math.round(minPay);
+  document.getElementById('min-pay-hint').textContent=hint||'Ingresá el saldo y el método para calcular automáticamente.';
+}
+
+function openDebtModal(editId=null){
+  initColorPresets();
+  document.getElementById('d-edit-id').value=editId||'';
+  document.getElementById('debt-modal-title').textContent=editId?'Editar deuda':'Nueva deuda';
+  document.getElementById('debt-save-btn').textContent=editId?'Guardar cambios':'Guardar deuda';
+
+  if(editId){
+    const d=debts.find(x=>x.id===editId);
+    if(!d) return;
+    document.getElementById('d-type').value=d.type;
+    // Entity: set custom if not in list
+    const entitySel=document.getElementById('d-entity');
+    const opt=[...entitySel.options].find(o=>o.value===d.entity);
+    if(opt){ entitySel.value=d.entity; document.getElementById('custom-entity-wrap').style.display='none'; }
+    else { entitySel.value='custom'; document.getElementById('custom-entity-wrap').style.display=''; document.getElementById('d-custom-entity').value=d.entity; }
+    // Brand
+    const brandSel=document.getElementById('d-brand');
+    const bopt=[...brandSel.options].find(o=>o.value===d.brand);
+    if(bopt){ brandSel.value=d.brand; document.getElementById('custom-brand-wrap').style.display='none'; }
+    else { brandSel.value='custom_brand'; document.getElementById('custom-brand-wrap').style.display=''; document.getElementById('d-custom-brand').value=d.brand; }
+    document.getElementById('d-currency').value=d.currency;
+    document.getElementById('d-color').value=d.color||'#1a6b4a';
+    document.getElementById('d-balance').value=d.balance;
+    document.getElementById('d-limit').value=d.limit||'';
+    document.getElementById('d-monthly-pay').value=d.monthlyPay||'';
+    document.getElementById('d-min-method').value=d.minMethod||'fixed';
+    document.getElementById('d-min-value').value=d.minValue||'';
+    document.getElementById('d-due').value=d.dueDate||'';
+    document.getElementById('d-rate').value=d.rate||'';
+    document.getElementById('d-notes').value=d.notes||'';
+    highlightPreset(d.color||'#1a6b4a');
+  } else {
+    // Reset form
+    ['d-type','d-entity','d-brand','d-currency'].forEach(id=>document.getElementById(id).selectedIndex=0);
+    ['d-balance','d-limit','d-monthly-pay','d-min-value','d-rate','d-notes','d-custom-entity','d-custom-brand'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('d-color').value='#1a6b4a';
+    document.getElementById('d-due').value='';
+    document.getElementById('d-min-method').value='fixed';
+    document.getElementById('custom-entity-wrap').style.display='none';
+    document.getElementById('custom-brand-wrap').style.display='none';
+    document.getElementById('min-pay-hint').textContent='Ingresá el saldo y el método para calcular automáticamente.';
+    highlightPreset('#1a6b4a');
+  }
+  toggleDebtFields();
+  document.getElementById('debt-modal').classList.add('open');
+}
 function closeDebtModal(){ document.getElementById('debt-modal').classList.remove('open'); }
 function toggleDebtFields(){
   const type=document.getElementById('d-type').value;
@@ -1138,23 +1257,34 @@ document.getElementById('d-entity').addEventListener('change',function(){ docume
 document.getElementById('d-brand').addEventListener('change',function(){ document.getElementById('custom-brand-wrap').style.display=this.value==='custom_brand'?'':'none'; });
 
 function saveDebt(){
+  const editId=document.getElementById('d-edit-id').value;
   const type=document.getElementById('d-type').value;
   let entity=document.getElementById('d-entity').value;
   if(entity==='custom') entity=document.getElementById('d-custom-entity').value.trim()||'Nueva entidad';
   let brand=document.getElementById('d-brand').value;
   if(brand==='custom_brand') brand=document.getElementById('d-custom-brand').value.trim()||'Otra';
   const currency=document.getElementById('d-currency').value;
+  const color=document.getElementById('d-color').value;
   const balance=parseFloat(document.getElementById('d-balance').value)||0;
   const limit=parseFloat(document.getElementById('d-limit').value)||0;
   const monthlyPay=parseFloat(document.getElementById('d-monthly-pay').value)||0;
+  const minMethod=document.getElementById('d-min-method').value;
+  const minValue=parseFloat(document.getElementById('d-min-value').value)||0;
   const dueDate=document.getElementById('d-due').value;
   const rate=parseFloat(document.getElementById('d-rate').value)||0;
   const notes=document.getElementById('d-notes').value.trim();
-  if(!balance){alert(lang==='en'?'Enter balance':lang==='pt'?'Informe o saldo':'Ingresá el saldo');return;}
-  debts.push({id:Date.now(),type,entity,brand,currency,balance,limit,monthlyPay,dueDate,rate,notes});
+  if(!balance){alert('Ingresá el saldo');return;}
+  const debtObj={type,entity,brand,currency,color,balance,limit,monthlyPay,minMethod,minValue,dueDate,rate,notes};
+  if(editId){
+    const idx=debts.findIndex(d=>d.id===parseInt(editId)||d.id===editId);
+    if(idx>=0) debts[idx]={...debts[idx],...debtObj};
+    toast('✓ Deuda actualizada');
+  } else {
+    debts.push({id:Date.now(),...debtObj});
+    toast('✓ Deuda agregada');
+  }
   closeDebtModal();
   renderDebts();
-  toast('✓ '+(lang==='en'?'Debt added':lang==='pt'?'Dívida adicionada':'Deuda agregada'));
 }
 
 function deleteDebt(id){
