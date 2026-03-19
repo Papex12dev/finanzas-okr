@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>finance+okr</title>
+<title>Equilibra — Tu sistema de vida</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +13,7 @@
   --card:#ffffff;
   --ink:#0e0e0c;--ink2:#3a3a36;--muted:#8a8880;
   --border:rgba(14,14,12,0.1);--border2:rgba(14,14,12,0.18);
-  --green:#1a6b4a;--green-bg:rgba(26,107,74,0.08);
+  --green:#0f7b6c;--green-bg:rgba(26,107,74,0.08);
   --red:#c0392b;--red-bg:rgba(192,57,43,0.08);
   --amber:#b87a0f;--amber-bg:rgba(184,122,15,0.08);
   --blue:#185fa5;--blue-bg:rgba(24,95,165,0.08);
@@ -250,7 +250,7 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 <div id="auth-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);padding:20px">
   <div style="width:100%;max-width:400px">
     <div style="text-align:center;margin-bottom:32px">
-      <div style="font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-0.5px;margin-bottom:8px">finance<span style="color:var(--green)">+okr</span></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-0.5px;margin-bottom:8px">Equili<span style="color:var(--green)">bra</span></div>
       <div style="font-size:13px;color:var(--muted)" id="auth-subtitle">Tu copiloto financiero personal</div>
     </div>
     <div style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow-lg)">
@@ -299,7 +299,7 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 
 <!-- ═══ LOADING SCREEN ═══ -->
 <div id="loading-screen" style="display:none;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);flex-direction:column;gap:16px">
-  <div style="font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-0.5px">finance<span style="color:var(--green)">+okr</span></div>
+  <div style="font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-0.5px">Equili<span style="color:var(--green)">bra</span></div>
   <div style="width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite"></div>
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </div>
@@ -308,7 +308,7 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-top">
-      <a class="logo" href="#">finance<span>+okr</span></a>
+      <a class="logo" href="#">Equili<span>bra</span></a>
       <div class="nav-section" data-t="nav_finance">Finanzas</div>
       <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span><span data-t="nav_dashboard">Dashboard</span></div>
       <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span><span data-t="nav_txns">Transacciones</span></div>
@@ -316,9 +316,12 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
       <div class="nav-section" data-t="nav_debts_section">Deudas</div>
       <div class="nav-item" onclick="nav('debts',this)"><span class="nav-icon">💳</span><span data-t="nav_debts">Mis deudas</span></div>
       <div class="nav-item" onclick="nav('credit',this)"><span class="nav-icon">◈</span><span data-t="nav_credit">Crédito disponible</span></div>
-      <div class="nav-section" data-t="nav_goals_section">Objetivos</div>
+      <div class="nav-section" data-t="nav_goals_section">Objetivos de Vida</div>
       <div class="nav-item" onclick="nav('okr',this)"><span class="nav-icon">◎</span><span data-t="nav_okr">OKRs</span></div>
       <div class="nav-item" onclick="nav('okr-fin',this)"><span class="nav-icon">⊕</span><span data-t="nav_okr_fin">OKRs Financieros</span></div>
+      <div class="nav-item" onclick="nav('ai',this)"><span class="nav-icon">✦</span><span data-t="nav_ai">Asistente IA</span></div>
+      <div class="nav-section">Crecer</div>
+      <div class="nav-item" onclick="nav('educacion',this)"><span class="nav-icon">📚</span><span data-t="nav_edu">Educación</span></div>
       <div class="nav-section" data-t="nav_reports_section">Reportes</div>
       <div class="nav-item" onclick="nav('export',this)"><span class="nav-icon">↓</span><span data-t="nav_export">Exportar</span></div>
     </div>
@@ -348,6 +351,16 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
         <div class="btn-group">
           <button class="btn btn-sm" onclick="nav('export',document.querySelector('.nav-item:nth-child(12)'))">↓ <span data-t="export_btn">Exportar</span></button>
         </div>
+      </div>
+
+      <!-- Motivational band -->
+      <div id="motivation-band" style="background:linear-gradient(135deg,#0f7b6c,#1a3a6b);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px">
+        <div style="font-size:28px" id="mot-emoji">💡</div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Equilibra · Tip del día</div>
+          <div id="mot-text" style="color:white;font-size:13px;line-height:1.6"></div>
+        </div>
+        <button onclick="refreshMotivation()" style="background:rgba(255,255,255,0.1);border:none;color:white;padding:6px 12px;border-radius:100px;cursor:pointer;font-size:11px;flex-shrink:0">↻ Nuevo</button>
       </div>
 
       <!-- Net worth band -->
@@ -535,8 +548,20 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
     <!-- ═══════════════════ OKR ═══════════════════ -->
     <div class="page" id="p-okr">
       <div class="page-header">
-        <div><div class="page-title" data-t="okr_title">OKRs</div><div class="page-sub" data-t="okr_sub">Objetivos y resultados clave</div></div>
-        <button class="btn btn-primary" onclick="openObjModal()">+ <span data-t="new_obj">Nuevo objetivo</span></button>
+        <div><div class="page-title" data-t="okr_title">OKRs</div><div class="page-sub" data-t="okr_sub">Objetivos y resultados clave de tu vida</div></div>
+        <div class="btn-group">
+          <button class="btn" onclick="openAIOKRModal()" style="display:flex;align-items:center;gap:6px">✦ <span>Crear con IA</span></button>
+          <button class="btn btn-primary" onclick="openObjModal()">+ <span data-t="new_obj">Nuevo objetivo</span></button>
+        </div>
+      </div>
+      <!-- Category filter tabs -->
+      <div class="tabs" style="margin-bottom:20px">
+        <button class="tab active" onclick="filterOKRCat('all',this)">Todos</button>
+        <button class="tab" onclick="filterOKRCat('finance',this)">💰 Finanzas</button>
+        <button class="tab" onclick="filterOKRCat('health',this)">💪 Salud</button>
+        <button class="tab" onclick="filterOKRCat('project',this)">🚀 Proyectos</button>
+        <button class="tab" onclick="filterOKRCat('learning',this)">🧠 Aprendizaje</button>
+        <button class="tab" onclick="filterOKRCat('personal',this)">❤️ Personal</button>
       </div>
       <div id="okr-list"></div>
     </div>
@@ -547,6 +572,89 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
         <div><div class="page-title" data-t="okrfin_title">OKRs Financieros</div><div class="page-sub" data-t="okrfin_sub">Metas ligadas a tus datos reales</div></div>
       </div>
       <div id="okr-fin-list"></div>
+    </div>
+
+    <!-- ═══════════════════ ASISTENTE IA ═══════════════════ -->
+    <div class="page" id="p-ai">
+      <div class="page-header">
+        <div><div class="page-title">Asistente IA ✦</div><div class="page-sub">Tu coach financiero y de vida personal</div></div>
+      </div>
+      <div class="grid-2 mb">
+        <!-- Chat -->
+        <div class="card" style="display:flex;flex-direction:column;height:500px">
+          <div class="card-title">Chat con tu coach</div>
+          <div id="ai-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding-right:4px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="ai-input" placeholder="Preguntá cualquier cosa sobre tus finanzas..." style="flex:1" onkeydown="if(event.key==='Enter')sendAIMessage()">
+            <button class="btn btn-primary" onclick="sendAIMessage()" style="flex-shrink:0">✦ Enviar</button>
+          </div>
+        </div>
+        <!-- Quick actions -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-title">Acciones rápidas con IA</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn" onclick="aiQuickAction('okrs')" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px">
+                <span style="font-size:18px">🎯</span><div><div style="font-weight:500;font-size:13px">Generá mis OKRs</div><div style="font-size:11px;color:var(--muted)">Basado en tus metas personales</div></div>
+              </button>
+              <button class="btn" onclick="aiQuickAction('budget')" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px">
+                <span style="font-size:18px">💰</span><div><div style="font-weight:500;font-size:13px">Optimizá tu presupuesto</div><div style="font-size:11px;color:var(--muted)">Según la regla 50/30/20</div></div>
+              </button>
+              <button class="btn" onclick="aiQuickAction('analyze')" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px">
+                <span style="font-size:18px">📊</span><div><div style="font-weight:500;font-size:13px">Analizá mis finanzas</div><div style="font-size:11px;color:var(--muted)">Insights personalizados</div></div>
+              </button>
+              <button class="btn" onclick="aiQuickAction('debt')" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px">
+                <span style="font-size:18px">💳</span><div><div style="font-weight:500;font-size:13px">Estrategia para deudas</div><div style="font-size:11px;color:var(--muted)">Plan para salir de deudas</div></div>
+              </button>
+              <button class="btn" onclick="openExtractReader()" style="text-align:left;justify-content:flex-start;gap:10px;padding:12px 14px;border-color:var(--green);color:var(--green)">
+                <span style="font-size:18px">📄</span><div><div style="font-weight:500;font-size:13px">Leer extracto bancario</div><div style="font-size:11px;color:var(--muted)">Cargá automáticamente tus datos</div></div>
+              </button>
+            </div>
+          </div>
+          <div class="card" style="background:linear-gradient(135deg,#0f7b6c,#1a3a6b);border:none">
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Tip del día ✦</div>
+            <div id="ai-tip-card" style="color:white;font-size:13px;line-height:1.6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ EDUCACIÓN ═══════════════════ -->
+    <div class="page" id="p-educacion">
+      <div class="page-header">
+        <div><div class="page-title">Educación financiera 📚</div><div class="page-sub">Aprendé a manejar tu dinero como un experto</div></div>
+      </div>
+      <!-- Reglas de oro -->
+      <div class="grid-3 mb">
+        <div class="card" style="border-top:3px solid var(--green)">
+          <div style="font-size:24px;margin-bottom:10px">⚖️</div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:6px">Regla 50/30/20</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">50% necesidades · 30% deseos · 20% ahorro e inversión. La base de un presupuesto saludable.</div>
+          <div id="rule-5030" style="margin-top:12px"></div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--amber)">
+          <div style="font-size:24px;margin-bottom:10px">🛡️</div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:6px">Fondo de emergencia</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">Debés tener entre 3 y 6 meses de gastos guardados. Es tu red de seguridad ante imprevistos.</div>
+          <div id="rule-emergency" style="margin-top:12px"></div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--blue)">
+          <div style="font-size:24px;margin-bottom:10px">📈</div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:6px">Ratio de endeudamiento</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">Tus pagos de deuda no deberían superar el 35% de tus ingresos. Los bancos usan este estándar.</div>
+          <div id="rule-dti" style="margin-top:12px"></div>
+        </div>
+      </div>
+      <!-- Píldoras educativas -->
+      <div class="card mb">
+        <div class="card-header"><span class="card-title">Píldoras de conocimiento</span></div>
+        <div id="education-pills" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
+      </div>
+      <!-- Tu progreso financiero según estándares bancarios -->
+      <div class="card">
+        <div class="card-title">Tu situación vs estándares bancarios</div>
+        <div id="banking-standards"></div>
+      </div>
     </div>
 
     <!-- ═══════════════════ EXPORTAR ═══════════════════ -->
@@ -568,6 +676,10 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6" data-t="pdf_desc">Reporte mensual A4 con métricas, deudas, presupuestos y OKRs.</p>
           <div class="btn-group">
             <button class="btn btn-primary" onclick="exportPDF()" data-t="export_pdf">↓ Reporte PDF</button>
+            <button class="btn" onclick="shareWhatsApp()" style="background:#25D366;color:white;border-color:#25D366;display:flex;align-items:center;gap:6px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+              WhatsApp
+            </button>
           </div>
         </div>
       </div>
@@ -1815,7 +1927,7 @@ function renderExportPreview(){
   <div style="font-family:'DM Sans',sans-serif;max-width:680px;background:var(--bg2);border-radius:14px;overflow:hidden;border:0.5px solid var(--border)">
     <div style="background:var(--ink);padding:20px 24px;display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="font-size:14px;font-weight:600;color:white;letter-spacing:-0.3px">finance<span style="color:#7ecba1">+okr</span></div>
+        <div style="font-size:14px;font-weight:600;color:white;letter-spacing:-0.3px">Equili<span style="color:#7ecba1">bra</span></div>
         <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">${L==='en'?'Monthly Financial Report':L==='pt'?'Relatório Financeiro Mensal':'Reporte Financiero Mensual'} · ${monthStr}</div>
       </div>
       <div style="text-align:right">
@@ -1846,7 +1958,7 @@ function renderExportPreview(){
       ${objectives.map(o=>{const pct=getObjPct(o);const c=pctColor(pct);return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:500">${o.title}</span><span style="font-weight:600;color:${c}">${pct}%</span></div><div style="height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-bottom:4px"><div style="width:${pct}%;height:100%;background:${c};border-radius:2px"></div></div>${o.krs.map(kr=>{const kp=Math.min(100,Math.round(kr.current/kr.target*100));return`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:1px 0"><span>· ${kr.name}</span><span style="color:${pctColor(kp)}">${kp}%</span></div>`;}).join('')}</div>`;}).join('')}
     </div>`:''}
     <div style="padding:10px 24px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);background:var(--card)">
-      <span>finance+okr · ${now.toLocaleDateString(locale)}</span>
+      <span>Equilibra · ${now.toLocaleDateString(locale)}</span>
       <span>${txns.length} ${L==='en'?'txns':'txns'} · ${debts.length} ${L==='en'?'debts':L==='pt'?'dívidas':'deudas'} · ${objectives.length} OKRs</span>
     </div>
   </div>`;
@@ -1926,7 +2038,7 @@ function exportPDF(){
   doc.setFillColor(...SC); doc.rect(0,0,W,28,'F');
   doc.setFillColor(14,14,12); doc.rect(0,28,W,14,'F');
   doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
-  doc.text('finance+okr',M,18);
+  doc.text('Equilibra',M,18);
   doc.setFontSize(8); doc.setFont('helvetica','normal');
   doc.text(L==='en'?'Monthly Financial Report':L==='pt'?'Relatório Financeiro Mensal':'Reporte Financiero Mensual',M,36);
   doc.text(monthStr,W-M,36,'right');
@@ -2036,9 +2148,9 @@ function exportPDF(){
   // FOOTER
   doc.setFillColor(...SC); doc.rect(0,284,W,13,'F');
   doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
-  doc.text('finance+okr · '+now.toLocaleDateString(locale),M,291);
+  doc.text('Equilibra · '+now.toLocaleDateString(locale),M,291);
   doc.text(`Score ${h.score}/100 · ${h.scoreLabel} · ${txns.length} txns · ${debts.length} debts`,W-M,291,'right');
-  doc.save('finance_okr_report_'+now.toISOString().slice(0,7)+'.pdf');
+  doc.save('equilibra_report_'+now.toISOString().slice(0,7)+'.pdf');
   toast('✓ PDF '+(L==='en'?'downloaded':L==='pt'?'baixado':'descargado'));
 }
 
@@ -2391,6 +2503,531 @@ async function handleURLTokens(){
   }
 })();
 
-</script>
-</body>
-</html>
+// ══════════════════════════════════════════════
+// MOTIVATIONAL CONTENT
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  {e:'💡',t:'La regla 50/30/20: 50% para necesidades, 30% para deseos y 20% para ahorro. Simple y poderosa.'},
+  {e:'🚀',t:'Un fondo de emergencia de 3-6 meses de gastos te protege de cualquier imprevisto. ¿Ya empezaste el tuyo?'},
+  {e:'💪',t:'Cada peso que ahorrás hoy es libertad futura. El mejor momento para empezar fue ayer. El segundo mejor es ahora.'},
+  {e:'📈',t:'El interés compuesto es la octava maravilla del mundo. Quien lo entiende, lo gana. Quien no, lo paga.'},
+  {e:'🎯',t:'Un objetivo sin fecha es solo un sueño. Ponele fecha y convertilo en un OKR medible.'},
+  {e:'🛡️',t:'Tus pagos de deuda no deberían superar el 35% de tus ingresos. Si lo superan, es momento de actuar.'},
+  {e:'🌱',t:'Invertir en vos mismo tiene el mejor retorno. Un curso, un libro, una habilidad nueva — son activos que nadie te puede quitar.'},
+  {e:'⚡',t:'La diferencia entre rico y pobre no es cuánto ganás, sino cuánto guardás de lo que ganás.'},
+  {e:'🔥',t:'Pequeños hábitos, grandes resultados. Ahorrar $500 al día son $182.500 al año.'},
+  {e:'🧠',t:'Tu historial crediticio es tu reputación financiera. Pagá a tiempo, siempre.'},
+  {e:'💰',t:'La libertad financiera no es tener mucho dinero. Es que tu dinero trabaje para vos.'},
+  {e:'🏆',t:'Los OKRs que te ponés hoy son la versión de vos mismo que querés ser mañana. ¿Qué tan ambicioso podés ser?'},
+  {e:'🌊',t:'Las deudas son como el agua: controladas son útiles, desbordadas te ahogan. Mantené siempre el control.'},
+  {e:'⭐',t:'El primer paso para mejorar tus finanzas es saber exactamente dónde estás. Eso ya lo tenés con Equilibra.'},
+  {e:'🎯',t:'Reducir un solo gasto innecesario por semana puede significar más de 1 millón ahorrado al año.'},
+];
+let motIndex = Math.floor(Math.random()*MOTIVATIONS.length);
+function refreshMotivation(){
+  motIndex=(motIndex+1)%MOTIVATIONS.length;
+  const m=MOTIVATIONS[motIndex];
+  document.getElementById('mot-emoji').textContent=m.e;
+  document.getElementById('mot-text').textContent=m.t;
+}
+function initMotivation(){ const m=MOTIVATIONS[motIndex]; if(document.getElementById('mot-emoji')){ document.getElementById('mot-emoji').textContent=m.e; document.getElementById('mot-text').textContent=m.t; } }
+
+// ══════════════════════════════════════════════
+// OKR LIFE CATEGORIES
+// ══════════════════════════════════════════════
+const OKR_CATS = {
+  finance:{label:'Finanzas',emoji:'💰',color:'#0f7b6c'},
+  health:{label:'Salud/Gym',emoji:'💪',color:'#D4537E'},
+  project:{label:'Proyecto',emoji:'🚀',color:'#185fa5'},
+  learning:{label:'Aprendizaje',emoji:'🧠',color:'#7F77DD'},
+  personal:{label:'Personal',emoji:'❤️',color:'#EF9F27'},
+};
+let okrCatFilter='all';
+let selectedAICat='finance';
+
+function filterOKRCat(cat,el){
+  okrCatFilter=cat;
+  document.querySelectorAll('#p-okr .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOKR();
+}
+
+// Patch renderOKR to support categories and filter
+const _origRenderOKR=renderOKR;
+function renderOKR(){
+  const el=document.getElementById('okr-list');
+  let filtered=okrCatFilter==='all'?objectives:objectives.filter(o=>o.category===okrCatFilter);
+  if(!filtered.length){
+    el.innerHTML=`<div class="card" style="text-align:center;padding:48px;color:var(--muted);font-size:13px">
+      ${okrCatFilter==='all'?'No hay objetivos. Creá tu primer OKR.':'No hay objetivos en esta categoría.'}
+      <br><br><button class="btn btn-primary" onclick="openObjModal()" style="margin:0 auto">+ Nuevo objetivo</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=filtered.map((o,oi)=>{
+    const pct=getObjPct(o); const color=pctColor(pct);
+    const cat=OKR_CATS[o.category]||OKR_CATS.finance;
+    return `<div class="okr-card">
+      <div class="okr-header">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:16px">${cat.emoji}</span>
+            <div class="okr-title">${o.title}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:10px;padding:2px 8px;border-radius:100px;background:${cat.color}20;color:${cat.color};font-weight:500">${cat.label}</span>
+            <div class="okr-meta">${o.cycle}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:220px">
+          <div class="prog-wrap" style="flex:1"><div class="prog-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div style="font-size:14px;font-weight:500;color:${color};min-width:36px;text-align:right">${pct}%</div>
+          <button onclick="deleteObj('${o.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;border-radius:4px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+        </div>
+      </div>
+      <div class="okr-body">${o.krs.map((kr,ki)=>{
+        const kpct=Math.min(100,Math.round(kr.current/kr.target*100)); const kc=pctColor(kpct);
+        return `<div class="kr-item">
+          <div class="kr-row"><div class="status-dot" style="background:${kc}"></div>
+            <div class="kr-name">${kr.name}</div>
+            <div class="kr-val">${kr.current.toLocaleString()} / ${kr.target.toLocaleString()} — ${kpct}%</div>
+            <input type="number" style="width:90px;font-size:11px;padding:4px 8px;border-radius:6px" value="${kr.current}" onchange="updateKR('${o.id}',${ki},this.value)">
+            <button onclick="deleteKR('${o.id}',${ki})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+          </div>
+          <div class="prog-wrap prog-wrap-xs"><div class="prog-bar" style="width:${kpct}%;background:${kc}"></div></div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+// Patch OKR modal to include category selector
+function openObjModal(){
+  document.getElementById('obj-modal').classList.add('open');
+  krCount=0; document.getElementById('kr-inputs').innerHTML='';
+  document.getElementById('new-obj-title').value='';
+  addKRInput();
+}
+
+// Patch saveObj to include category
+async function saveObj(){
+  const title=document.getElementById('new-obj-title').value.trim();
+  const cycle=document.getElementById('new-obj-cycle').value;
+  const category=document.getElementById('new-obj-cat')?.value||'finance';
+  if(!title){alert('Ingresá el título');return;}
+  const krs=[];
+  document.querySelectorAll('[id^=kr-row-]').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    const name=inputs[0].value.trim(); const current=parseFloat(inputs[1].value)||0; const target=parseFloat(inputs[2].value)||1;
+    if(name) krs.push({id:Date.now()+Math.random(),name,current,target});
+  });
+  const newObj={id:Date.now(),title,cycle,category,krs};
+  objectives.push(newObj);
+  closeObjModal(); renderOKR();
+  toast('✓ Objetivo creado');
+  await dbSaveObjective(newObj);
+}
+
+// ══════════════════════════════════════════════
+// AI ASSISTANT
+// ══════════════════════════════════════════════
+let aiMessages=[];
+
+function addAIMessage(role,text){
+  aiMessages.push({role,text});
+  const el=document.getElementById('ai-messages');
+  if(!el) return;
+  const isUser=role==='user';
+  const div=document.createElement('div');
+  div.style.cssText=`display:flex;justify-content:${isUser?'flex-end':'flex-start'}`;
+  div.innerHTML=`<div style="max-width:80%;padding:10px 14px;border-radius:${isUser?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${isUser?'var(--ink)':'var(--bg2)'};color:${isUser?'var(--bg)':'var(--ink)'};font-size:13px;line-height:1.6">${text.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+async function sendAIMessage(){
+  const input=document.getElementById('ai-input');
+  const msg=input.value.trim();
+  if(!msg) return;
+  input.value='';
+  addAIMessage('user',msg);
+  await callAI(msg);
+}
+
+async function aiQuickAction(type){
+  nav('ai',document.querySelector('[onclick*="nav(\'ai\'"]'));
+  const h=calcFinancialHealth();
+  const ctx=`El usuario tiene: Ingresos ${fmt(h.inc)}, Gastos ${fmt(h.exp)}, Tasa de ahorro ${h.savingRate.toFixed(1)}%, Deuda total ${fmt(h.totalDebt)}, DTI ${h.dti.toFixed(1)}%, Score de salud financiera ${h.score}/100.`;
+  const prompts={
+    okrs:`${ctx} Basándote en esta situación financiera, sugerí 3 OKRs personales concretos y medibles para mejorar su salud financiera en el próximo trimestre. Para cada OKR incluí 2-3 Key Results con métricas específicas.`,
+    budget:`${ctx} Aplicá la regla 50/30/20 y sugerí una distribución de presupuesto mensual optimizada para esta persona. Sé específico con los montos.`,
+    analyze:`${ctx} Hacé un análisis financiero completo de esta persona. Identificá sus fortalezas, riesgos principales y las 3 acciones más urgentes que debería tomar.`,
+    debt:`${ctx} Debts: ${JSON.stringify(debts.map(d=>({entity:d.entity,balance:d.balance,rate:d.rate,monthly:d.monthlyPay})))}. Sugerí la mejor estrategia para pagar las deudas (avalanche vs snowball) y calculá el tiempo estimado para quedar libre de deudas.`,
+  };
+  addAIMessage('user',{okrs:'Generá mis OKRs financieros',budget:'Optimizá mi presupuesto con 50/30/20',analyze:'Analizá mis finanzas',debt:'Dame una estrategia para mis deudas'}[type]);
+  await callAI(prompts[type],true);
+}
+
+async function callAI(userMsg,isContext=false){
+  const thinkingEl=document.createElement('div');
+  thinkingEl.style.cssText='display:flex;justify-content:flex-start';
+  thinkingEl.innerHTML='<div style="padding:10px 14px;border-radius:14px 14px 14px 4px;background:var(--bg2);font-size:13px;color:var(--muted)">✦ Pensando...</div>';
+  const el=document.getElementById('ai-messages');
+  if(el){el.appendChild(thinkingEl);el.scrollTop=el.scrollHeight;}
+  try{
+    const h=calcFinancialHealth();
+    const systemPrompt=`Eres el coach financiero y de vida personal de Equilibra, una app latinoamericana de finanzas personales y OKRs. 
+El usuario tiene: Score de salud financiera ${h.score}/100 (${h.scoreLabel}), Ingresos ${fmt(h.inc)}, Gastos ${fmt(h.exp)}, Ahorro ${h.savingRate.toFixed(1)}%, Deuda total ${fmt(h.totalDebt)}, DTI ${h.dti.toFixed(1)}%, Utilización de crédito ${h.utilization.toFixed(0)}%.
+OKRs activos: ${objectives.length}. Deudas: ${debts.length}.
+Respondé en el idioma del usuario (español latinoamericano preferentemente). Sé concreto, motivador y práctico. Usá emojis con moderación. Máximo 300 palabras salvo que te pidan un análisis completo.`;
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[...aiMessages.slice(-6).map(m=>({role:m.role==='user'?'user':'assistant',content:m.text})),{role:'user',content:userMsg}]
+      })
+    });
+    const data=await response.json();
+    if(el) el.removeChild(thinkingEl);
+    const reply=data.content?.[0]?.text||'Lo siento, no pude procesar tu consulta.';
+    addAIMessage('assistant',reply);
+  } catch(e){
+    if(el) el.removeChild(thinkingEl);
+    addAIMessage('assistant','Hubo un error al conectar con la IA. Intentá de nuevo.');
+  }
+}
+
+function openAIOKRModal(){ document.getElementById('ai-okr-modal').classList.add('open'); document.getElementById('ai-okr-result').style.display='none'; }
+function selectAICat(btn,cat){
+  selectedAICat=cat;
+  document.querySelectorAll('#ai-cat-pills button').forEach(b=>{b.style.background='transparent';b.style.color='var(--muted)';b.style.borderColor='var(--border2)';});
+  const c=OKR_CATS[cat];
+  btn.style.background=c.color+'20'; btn.style.color=c.color; btn.style.borderColor=c.color;
+}
+
+async function generateAIOKR(){
+  const goal=document.getElementById('ai-goal-input').value.trim();
+  if(!goal){alert('Describí tu meta');return;}
+  const btn=document.getElementById('ai-okr-btn');
+  btn.textContent='✦ Generando...'; btn.disabled=true;
+  const cat=OKR_CATS[selectedAICat];
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:`Creá un OKR profesional para esta meta: "${goal}" en la categoría ${cat.label}.
+Respondé SOLO con JSON válido, sin markdown, sin explicaciones:
+{"title":"título del objetivo","cycle":"Q1 2026","krs":[{"name":"nombre del KR","current":0,"target":100},{"name":"nombre del KR","current":0,"target":100},{"name":"nombre del KR","current":0,"target":100}]}`}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.[0]?.text||'{}';
+    const clean=text.replace(/```json|```/g,'').trim();
+    const okr=JSON.parse(clean);
+    // Show preview
+    const resEl=document.getElementById('ai-okr-result');
+    resEl.style.display='block';
+    resEl.innerHTML=`<div style="background:var(--bg2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Vista previa del OKR generado</div>
+      <div style="font-weight:500;margin-bottom:6px">${cat.emoji} ${okr.title}</div>
+      ${okr.krs.map(kr=>`<div style="font-size:12px;color:var(--muted);padding:3px 0">· ${kr.name} → Meta: ${kr.target}</div>`).join('')}
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="confirmAIOKR(${JSON.stringify(okr).replace(/"/g,'&quot;')})">✓ Agregar este OKR</button>
+    </div>`;
+    btn.textContent='✦ Generar OKR'; btn.disabled=false;
+  } catch(e){
+    alert('Error al generar. Intentá de nuevo.');
+    btn.textContent='✦ Generar OKR'; btn.disabled=false;
+  }
+}
+
+async function confirmAIOKR(okrData){
+  const newObj={id:Date.now(),title:okrData.title,cycle:okrData.cycle,category:selectedAICat,krs:okrData.krs.map(kr=>({id:Date.now()+Math.random(),name:kr.name,current:kr.current||0,target:kr.target||100}))};
+  objectives.push(newObj);
+  document.getElementById('ai-okr-modal').classList.remove('open');
+  nav('okr',document.querySelector('[onclick*="nav(\'okr\'"]'));
+  toast('✓ OKR creado con IA');
+  await dbSaveObjective(newObj);
+}
+
+// ── EXTRACT READER ────────────────────────────
+function openExtractReader(){ document.getElementById('extract-modal').classList.add('open'); document.getElementById('extract-result').style.display='none'; }
+
+async function readExtract(){
+  const text=document.getElementById('extract-input').value.trim();
+  if(!text){alert('Pegá el texto del extracto');return;}
+  const btn=document.getElementById('extract-btn');
+  btn.textContent='✦ Analizando...'; btn.disabled=true;
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:`Analizá este extracto bancario y extraé las transacciones. Respondé SOLO con JSON válido:
+{"transactions":[{"date":"YYYY-MM-DD","desc":"descripción","amount":0,"type":"gasto o ingreso","cat":"Alimentación|Transporte|Salud|Entretenimiento|Servicios|Educación|Ropa|Salario|Otros"}]}
+
+Extracto:
+${text}`}]
+      })
+    });
+    const data=await response.json();
+    const raw=data.content?.[0]?.text||'{}';
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    const txnsFound=parsed.transactions||[];
+    if(!txnsFound.length){
+      document.getElementById('extract-result').style.display='block';
+      document.getElementById('extract-result').innerHTML='<div style="color:var(--muted);font-size:13px">No se encontraron transacciones en el texto.</div>';
+    } else {
+      document.getElementById('extract-result').style.display='block';
+      document.getElementById('extract-result').innerHTML=`
+        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${txnsFound.length} transacciones encontradas</div>
+          ${txnsFound.slice(0,8).map(tx=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:0.5px solid var(--border)">
+            <span>${tx.date} · ${tx.desc}</span>
+            <span style="font-weight:500;color:${tx.type==='ingreso'?'var(--green)':'var(--red)'}">${tx.type==='ingreso'?'+':'-'}${fmt(tx.amount)}</span>
+          </div>`).join('')}
+          ${txnsFound.length>8?`<div style="font-size:11px;color:var(--muted);margin-top:6px">+${txnsFound.length-8} más...</div>`:''}
+          <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="importExtractTxns(${JSON.stringify(txnsFound).replace(/"/g,'&quot;')})">✓ Importar ${txnsFound.length} transacciones</button>
+        </div>`;
+    }
+    btn.textContent='✦ Analizar extracto'; btn.disabled=false;
+  } catch(e){
+    alert('Error al analizar. Verificá el formato del texto.');
+    btn.textContent='✦ Analizar extracto'; btn.disabled=false;
+  }
+}
+
+async function importExtractTxns(txnsData){
+  let imported=0;
+  for(const tx of txnsData){
+    const newTx={id:Date.now()+imported,desc:tx.desc,amount:Math.abs(tx.amount),cat:tx.cat||'Otros',type:tx.type,date:tx.date};
+    txns.unshift(newTx);
+    await dbSaveTxn(newTx);
+    imported++;
+  }
+  document.getElementById('extract-modal').classList.remove('open');
+  toast(`✓ ${imported} transacciones importadas`);
+  if(document.getElementById('p-txns').classList.contains('active')) renderTxnTable();
+}
+
+// ══════════════════════════════════════════════
+// EDUCATION MODULE
+// ══════════════════════════════════════════════
+const EDUCATION_PILLS=[
+  {title:'Interés compuesto',icon:'📈',text:'Si invertís $100/mes durante 30 años al 8% anual, tendrás más de $136.000. La clave es empezar temprano.'},
+  {title:'Avalanche vs Snowball',icon:'❄️',text:'Avalanche: pagás primero la deuda de mayor tasa (ahorras más dinero). Snowball: la de menor saldo (más motivación). Ambas funcionan.'},
+  {title:'Regla del 1%',icon:'💡',text:'Aumentar tus ingresos un 1% mensual los duplica en 6 años. Busca siempre pequeñas mejoras consistentes.'},
+  {title:'Fondo de emergencia',icon:'🛡️',text:'3 meses mínimo, 6 meses ideal. En cuenta de ahorro separada. No tocarla salvo emergencia real.'},
+  {title:'Score crediticio',icon:'⭐',text:'Para los bancos: excelente >750, bueno 700-750, regular 650-700, malo <650. Pagá puntual y mantené utilización bajo 30%.'},
+  {title:'Regla 72',icon:'🔢',text:'Para saber en cuántos años se duplica tu inversión: dividí 72 por la tasa de interés. Al 8%, tu dinero se duplica en 9 años.'},
+];
+
+function renderEducation(){
+  const h=calcFinancialHealth();
+  const mt=getMonthTxns();
+  const inc=mt.filter(t=>t.type==='ingreso').reduce((s,t)=>s+t.amount,0);
+  const exp=mt.filter(t=>t.type==='gasto').reduce((s,t)=>s+t.amount,0);
+
+  // 50/30/20 rule
+  const needs=mt.filter(t=>t.type==='gasto'&&['Alimentación','Servicios','Salud','Transporte'].includes(t.cat)).reduce((s,t)=>s+t.amount,0);
+  const wants=mt.filter(t=>t.type==='gasto'&&['Entretenimiento','Ropa','Otros'].includes(t.cat)).reduce((s,t)=>s+t.amount,0);
+  const savedPct=inc>0?Math.round((inc-exp)/inc*100):0;
+  const needsPct=inc>0?Math.round(needs/inc*100):0;
+  const wantsPct=inc>0?Math.round(wants/inc*100):0;
+
+  const rule5030El=document.getElementById('rule-5030');
+  if(rule5030El) rule5030El.innerHTML=`
+    <div style="font-size:11px;margin-top:8px">
+      ${[['Necesidades',needsPct,50,'var(--blue)'],['Deseos',wantsPct,30,'var(--purple)'],['Ahorro',savedPct,20,'var(--green)']].map(([l,v,t,c])=>`
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px">
+          <span style="color:var(--muted)">${l}</span>
+          <span style="font-weight:500;color:${v<=t?'var(--green)':'var(--red)'}">${v}% / ${t}%</span>
+        </div>
+        <div style="height:3px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-bottom:6px"><div style="width:${Math.min(100,v)}%;height:100%;background:${c};border-radius:2px"></div></div>`).join('')}
+    </div>`;
+
+  // Emergency fund
+  const monthlyExp=exp||1;
+  const savedAmount=inc-exp;
+  const emergencyMonths=savedAmount>0?Math.round(savedAmount/monthlyExp*10)/10:0;
+  const emergencyEl=document.getElementById('rule-emergency');
+  if(emergencyEl){
+    const ok=emergencyMonths>=3;
+    emergencyEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <div style="font-size:22px">${ok?'✅':'⚠️'}</div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:${ok?'var(--green)':'var(--amber)'}">${emergencyMonths.toFixed(1)} meses cubiertos</div>
+        <div style="font-size:11px;color:var(--muted)">${ok?'¡Bien! Estás dentro del rango recomendado':'Meta: 3-6 meses de gastos'}</div>
+      </div>
+    </div>`;
+  }
+
+  // DTI
+  const dtiEl=document.getElementById('rule-dti');
+  if(dtiEl){
+    const dti=h.dti;
+    const dtiOk=dti<=35;
+    dtiEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <div style="font-size:22px">${dtiOk?'✅':'🚨'}</div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:${dtiOk?'var(--green)':'var(--red)'}">${dti.toFixed(1)}% de tus ingresos</div>
+        <div style="font-size:11px;color:var(--muted)">${dtiOk?'Dentro del límite bancario (35%)':'Por encima del límite recomendado'}</div>
+      </div>
+    </div>`;
+  }
+
+  // Pills
+  const pillsEl=document.getElementById('education-pills');
+  if(pillsEl) pillsEl.innerHTML=EDUCATION_PILLS.map(p=>`
+    <div class="card" style="cursor:default">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="font-size:22px;flex-shrink:0">${p.icon}</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px">${p.title}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">${p.text}</div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Banking standards
+  const stdEl=document.getElementById('banking-standards');
+  if(stdEl){
+    const standards=[
+      {label:'Tasa de ahorro',val:h.savingRate,min:20,unit:'%',desc:'Recomendado: mínimo 20% del ingreso',good:h.savingRate>=20},
+      {label:'Ratio deuda/ingreso (DTI)',val:h.dti,max:35,unit:'%',desc:'Estándar bancario: máximo 35%',good:h.dti<=35},
+      {label:'Utilización de crédito',val:h.utilization,max:30,unit:'%',desc:'Para buen score crediticio: máximo 30%',good:h.utilization<=30},
+      {label:'Score de salud financiera',val:h.score,min:60,unit:'/100',desc:'Equilibra recomienda: mínimo 60',good:h.score>=60},
+    ];
+    stdEl.innerHTML=standards.map(s=>`
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:20px">${s.good?'✅':'⚠️'}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px">${s.label}</div>
+          <div style="font-size:11px;color:var(--muted)">${s.desc}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:600;color:${s.good?'var(--green)':'var(--red)'}">${s.val.toFixed(1)}${s.unit}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════
+// WHATSAPP SHARE
+// ══════════════════════════════════════════════
+function shareWhatsApp(){
+  const h=calcFinancialHealth();
+  const now=new Date();
+  const locale=lang==='en'?'en-US':lang==='pt'?'pt-BR':'es-PY';
+  const mes=now.toLocaleDateString(locale,{month:'long',year:'numeric'});
+  const emoji=h.score>=80?'🟢':h.score>=60?'🟡':'🔴';
+  const msg=`${emoji} *Mi reporte financiero Equilibra — ${mes}*
+
+📊 *Score de salud: ${h.score}/100 — ${h.scoreLabel}*
+
+💰 Ingresos: ${fmt(h.inc)}
+💸 Gastos: ${fmt(h.exp)}
+💵 Balance: ${fmt(h.inc-h.exp)}
+🏦 Deuda total: ${fmt(h.totalDebt)}
+📈 Tasa de ahorro: ${h.savingRate.toFixed(1)}%
+
+🎯 OKRs activos: ${objectives.length}
+${objectives.map(o=>`  • ${o.title}: ${getObjPct(o)}%`).join('\n')}
+
+_Generado con Equilibra — Tu sistema de vida_
+https://papex12dev.github.io/finanzas-okr/app.html`;
+
+  const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
+// ── AI TIP IN CARD ────────────────────────────
+function setAITipCard(){
+  const el=document.getElementById('ai-tip-card');
+  if(el) el.textContent=MOTIVATIONS[motIndex].t;
+}
+
+// ── PATCH refreshPage to include new pages ────
+const _origRefreshPage=refreshPage;
+function refreshPage(id){
+  _origRefreshPage(id);
+  if(id==='ai'){
+    if(!aiMessages.length) addAIMessage('assistant','¡Hola! Soy tu coach financiero de Equilibra. Puedo ayudarte a analizar tus finanzas, crear OKRs, optimizar tu presupuesto y mucho más. ¿En qué te ayudo hoy? 💪');
+    setAITipCard();
+  }
+  if(id==='educacion') renderEducation();
+  if(id==='dashboard') initMotivation();
+}
+
+// ── ADD CATEGORY TO OKR MODAL ─────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  const cycleGroup=document.querySelector('#new-obj-cycle')?.parentElement;
+  if(cycleGroup){
+    const catGroup=document.createElement('div');
+    catGroup.className='form-group'; catGroup.style.marginBottom='14px';
+    catGroup.innerHTML=`<label class="form-label">Categoría</label>
+      <select id="new-obj-cat" style="width:100%">
+        <option value="finance">💰 Finanzas</option>
+        <option value="health">💪 Salud / Gym</option>
+        <option value="project">🚀 Proyecto</option>
+        <option value="learning">🧠 Aprendizaje</option>
+        <option value="personal">❤️ Personal</option>
+      </select>`;
+    cycleGroup.parentElement.insertBefore(catGroup,cycleGroup);
+  }
+});
+
+<div class="modal-overlay" id="ai-okr-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-title">✦ Crear OKRs con IA</div>
+    <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.6">
+      Describí tu meta en lenguaje natural y la IA va a generar un objetivo con resultados clave medibles.
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Categoría</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="ai-cat-pills">
+        <button onclick="selectAICat(this,'finance')" class="btn btn-sm" style="border-radius:100px;background:rgba(15,123,108,0.1);color:var(--green);border-color:var(--green)">💰 Finanzas</button>
+        <button onclick="selectAICat(this,'health')" class="btn btn-sm" style="border-radius:100px">💪 Salud/Gym</button>
+        <button onclick="selectAICat(this,'project')" class="btn btn-sm" style="border-radius:100px">🚀 Proyecto</button>
+        <button onclick="selectAICat(this,'learning')" class="btn btn-sm" style="border-radius:100px">🧠 Aprendizaje</button>
+        <button onclick="selectAICat(this,'personal')" class="btn btn-sm" style="border-radius:100px">❤️ Personal</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Describí tu meta</label>
+      <textarea id="ai-goal-input" rows="3" style="width:100%;padding:10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;resize:none" placeholder="Ej: Quiero bajar 10kg en 3 meses yendo al gym 4 veces por semana y mejorando mi alimentación"></textarea>
+    </div>
+    <div id="ai-okr-result" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('ai-okr-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary" onclick="generateAIOKR()" id="ai-okr-btn">✦ Generar OKR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: LECTOR DE EXTRACTO ═══ -->
+<div class="modal-overlay" id="extract-modal">
+  <div class="modal" style="width:540px">
+    <div class="modal-title">📄 Lector de extracto bancario</div>
+    <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.6">
+      Pegá el texto de tu extracto bancario o resumen de tarjeta y la IA va a identificar y cargar las transacciones automáticamente.
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Pegá el texto del extracto</label>
+      <textarea id="extract-input" rows="8" style="width:100%;padding:10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:12px;resize:vertical" placeholder="Pegá aquí el contenido de tu extracto bancario...&#10;&#10;Ej:&#10;15/03 SUPERMERCADO STOCK 850000&#10;16/03 UBER 45000&#10;17/03 NETFLIX 65000"></textarea>
+    </div>
+    <div id="extract-result" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('extract-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary" onclick="readExtract()" id="extract-btn">✦ Analizar extracto</button>
+    </div>
+  </div>
+</div>
