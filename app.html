@@ -876,7 +876,7 @@ window.signInGoogle=function(){setTimeout(function(){if(window._sbReady) window.
 window.forgotPassword=function(){setTimeout(function(){if(window._sbReady) window._doForgotPassword();},200);};
 window.signOut=function(){setTimeout(function(){if(window._sbReady) window._doSignOut();},200);};
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2186,6 +2186,7 @@ function exportPDF(){
 const SUPABASE_URL = 'https://brrkbhobzpvzqpchwwvg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+window.sb = sb; // Expose immediately
 let currentUser = null;
 
 // ── AUTH HELPERS ─────────────────────────────
