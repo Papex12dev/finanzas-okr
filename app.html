@@ -2607,6 +2607,33 @@ function setUserDisplay(user){
 // ── BOOT ─────────────────────────────────────
 async function checkAuth(){
   try{
+    // First check if there's an OAuth callback in the URL hash
+    const hash=window.location.hash;
+    if(hash&&hash.includes('access_token')){
+      const p=new URLSearchParams(hash.replace('#',''));
+      const access_token=p.get('access_token');
+      const refresh_token=p.get('refresh_token');
+      if(access_token){
+        // Get user info with this token
+        try{
+          const res=await fetch('https://brrkbhobzpvzqpchwwvg.supabase.co/auth/v1/user',{
+            headers:{'apikey':'sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ','Authorization':'Bearer '+access_token}
+          });
+          if(res.ok){
+            const user=await res.json();
+            const session={access_token,refresh_token,user};
+            sb.auth._session=session;
+            localStorage.setItem('eq_session',JSON.stringify(session));
+            window.history.replaceState({},document.title,window.location.pathname);
+            currentUser=user;
+            setUserDisplay(currentUser);
+            await loadUserData(currentUser.id);
+            return;
+          }
+        }catch(e){console.error('OAuth token error:',e);}
+      }
+    }
+    // Then check stored session
     const {data:{session}}=await sb.auth.getSession();
     if(session?.user){
       currentUser=session.user;
