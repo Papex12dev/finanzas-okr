@@ -851,14 +851,14 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 
 <!-- SCRIPTS -->
 <script>
-// Auth stubs — defined early so onclick handlers work before external scripts load
-function switchAuthTab(tab){
+// Placeholder functions — will be replaced after Supabase loads
+window.switchAuthTab=function(tab){
   const isLogin=tab==='login';
+  const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
   const tl=document.getElementById('tab-login');
   const tr=document.getElementById('tab-register');
-  const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
-  tl.style.cssText=base+(isLogin?'background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:var(--muted)');
-  tr.style.cssText=base+(!isLogin?'background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:var(--muted)');
+  if(tl) tl.style.cssText=base+(isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
+  if(tr) tr.style.cssText=base+(!isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
   const nw=document.getElementById('auth-name-wrap');
   if(nw) nw.style.display=isLogin?'none':'block';
   const btn=document.getElementById('auth-btn');
@@ -867,17 +867,14 @@ function switchAuthTab(tab){
   if(fl) fl.style.display=isLogin?'':'none';
   const err=document.getElementById('auth-error');
   if(err) err.style.display='none';
-}
-function authSubmit(){
-  // Will be overridden by full implementation after scripts load
-  const btn=document.getElementById('auth-btn');
-  if(btn&&btn._fullImpl) return btn._fullImpl();
-  // Fallback: wait for scripts
-  setTimeout(()=>{const b=document.getElementById('auth-btn');if(b&&b._fullImpl)b._fullImpl();},500);
-}
-function signInGoogle(){if(window._signInGoogle) window._signInGoogle();}
-function forgotPassword(){if(window._forgotPassword) window._forgotPassword();}
-function signOut(){if(window._signOut) window._signOut();}
+};
+window.authSubmit=function(){
+  // Will be replaced after Supabase loads
+  setTimeout(function(){if(window._authReady) window._doAuthSubmit();},200);
+};
+window.signInGoogle=function(){setTimeout(function(){if(window._sbReady) window._doSignInGoogle();},200);};
+window.forgotPassword=function(){setTimeout(function(){if(window._sbReady) window._doForgotPassword();},200);};
+window.signOut=function(){setTimeout(function(){if(window._sbReady) window._doSignOut();},200);};
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -2220,7 +2217,6 @@ function setAuthError(msg){
 }
 
 async function authSubmit(){
-  // Full implementation — called after Supabase is loaded
   const btn=document.getElementById('auth-btn');
   const mode=btn.dataset.mode||'login';
   const email=document.getElementById('auth-email').value.trim();
@@ -2245,58 +2241,26 @@ async function authSubmit(){
     btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'; btn.disabled=false;
   }
 }
-// Also register as window global and patch button
+// Override window stubs with real implementations
 window.authSubmit=authSubmit;
-const _authBtn=document.getElementById('auth-btn');
-if(_authBtn) _authBtn._fullImpl=authSubmit;
-
-async function signInGoogle(){ await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}}); }
-window._signInGoogle=signInGoogle;
-
-async function forgotPassword(){
+window._doAuthSubmit=authSubmit;
+window._authReady=true;
+window._sbReady=true;
+window._doSignInGoogle=async function(){ await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}}); };
+window._doForgotPassword=async function(){
   const email=document.getElementById('auth-email').value.trim();
   if(!email){setAuthError('Ingresá tu email primero');return;}
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href+'?reset=1'});
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
   if(error) setAuthError(error.message);
   else setAuthError('✓ Revisá tu email para restablecer la contraseña');
-}
-window._forgotPassword=forgotPassword;
-
-async function signOut(){
+};
+window._doSignOut=async function(){
   await sb.auth.signOut();
   currentUser=null; txns=[]; budgets={}; objectives=[]; debts=[];
   showScreen('auth');
-}
-window._signOut=signOut;
+};
 
-// Register full authSubmit
-document.addEventListener('DOMContentLoaded',()=>{
-  const btn=document.getElementById('auth-btn');
-  if(btn) btn._fullImpl=async function(){
-    const mode=btn.dataset.mode||'login';
-    const email=document.getElementById('auth-email').value.trim();
-    const password=document.getElementById('auth-password').value;
-    if(!email||!password){setAuthError('Completá email y contraseña');return;}
-    btn.textContent='...'; btn.disabled=true;
-    document.getElementById('auth-error').style.display='none';
-    try{
-      if(mode==='register'){
-        const name=document.getElementById('auth-name').value.trim()||email.split('@')[0];
-        const {error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
-        if(error) throw error;
-        setAuthError('✓ Revisá tu email para confirmar tu cuenta');
-        btn.textContent='Crear cuenta'; btn.disabled=false;
-      } else {
-        const {error}=await sb.auth.signInWithPassword({email,password});
-        if(error) throw error;
-      }
-    } catch(e){
-      const msgs={'Invalid login credentials':'Email o contraseña incorrectos','Email not confirmed':'Confirmá tu email antes de ingresar','User already registered':'Ya existe una cuenta con ese email'};
-      setAuthError(msgs[e.message]||e.message);
-      btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'; btn.disabled=false;
-    }
-  };
-});
+// Auth functions registered above as window globals
 
 // ── LOAD USER DATA FROM SUPABASE ─────────────
 async function loadUserData(userId){
