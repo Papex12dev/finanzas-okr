@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Equilibra — Tu sistema de vida</title>
+<title>finance+okr</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
@@ -308,8 +308,7 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-top">
-      <a class="logo" href="#">Equilibra</a>
-      <div style="font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-bottom:20px">Tu sistema de vida</div>
+      <a class="logo" href="#">finance<span>+okr</span></a>
       <div class="nav-section" data-t="nav_finance">Finanzas</div>
       <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span><span data-t="nav_dashboard">Dashboard</span></div>
       <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span><span data-t="nav_txns">Transacciones</span></div>
@@ -2047,7 +2046,7 @@ function exportPDF(){
 // SUPABASE CONFIG
 // ══════════════════════════════════════════════
 const SUPABASE_URL = 'https://brrkbhobzpvzqpchwwvg.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycmtiaG9ienB2enFwY2h3d3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4Njg3MTgsImV4cCI6MjA4OTQ0NDcxOH0.U24D-GH39PX1ychOGzIFYe9oZkYH78ZYyNn08TzMglY';
+const SUPABASE_KEY = 'sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
@@ -2343,11 +2342,16 @@ function setUserDisplay(user){
 
 // ── SUPABASE AUTH LISTENER ────────────────────
 sb.auth.onAuthStateChange(async (event, session)=>{
-  if(session?.user){
-    currentUser=session.user;
-    setUserDisplay(currentUser);
-    await loadUserData(currentUser.id);
-  } else {
+  console.log('Auth event:', event, session?.user?.email);
+  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'){
+    if(session?.user){
+      currentUser=session.user;
+      setUserDisplay(currentUser);
+      await loadUserData(currentUser.id);
+      return;
+    }
+  }
+  if(event==='SIGNED_OUT'||(!session&&event==='INITIAL_SESSION')){
     showScreen('auth');
   }
 });
@@ -2356,10 +2360,36 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
-// Check existing session
-sb.auth.getSession().then(({data:{session}})=>{
-  if(!session) showScreen('auth');
-});
+
+// Handle email confirmation / password reset tokens in URL
+async function handleURLTokens(){
+  const hash=window.location.hash;
+  const params=new URLSearchParams(window.location.search);
+  // Check for tokens in hash (Supabase puts them there after email confirm)
+  if(hash&&hash.includes('access_token')){
+    const hashParams=new URLSearchParams(hash.replace('#',''));
+    const accessToken=hashParams.get('access_token');
+    const refreshToken=hashParams.get('refresh_token');
+    if(accessToken){
+      const {data,error}=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken||''});
+      if(!error&&data.session){
+        // Clean URL
+        window.history.replaceState({},document.title,window.location.pathname);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Boot sequence
+(async()=>{
+  const handledToken=await handleURLTokens();
+  if(!handledToken){
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) showScreen('auth');
+  }
+})();
 
 </script>
 </body>
