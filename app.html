@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>finance+okr</title>
+<title>Equilibra — Tu sistema de vida</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
@@ -308,7 +308,8 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-top">
-      <a class="logo" href="#">finance<span>+okr</span></a>
+      <a class="logo" href="#">Equilibra</a>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-bottom:20px">Tu sistema de vida</div>
       <div class="nav-section" data-t="nav_finance">Finanzas</div>
       <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">◻</span><span data-t="nav_dashboard">Dashboard</span></div>
       <div class="nav-item" onclick="nav('txns',this)"><span class="nav-icon">↕</span><span data-t="nav_txns">Transacciones</span></div>
@@ -2342,18 +2343,12 @@ function setUserDisplay(user){
 
 // ── SUPABASE AUTH LISTENER ────────────────────
 sb.auth.onAuthStateChange(async (event, session)=>{
-  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){
-    if(session?.user){
-      currentUser=session.user;
-      setUserDisplay(currentUser);
-      // Clean URL after confirmation
-      if(window.location.hash) history.replaceState(null,'',window.location.pathname);
-      await loadUserData(currentUser.id);
-    }
-  } else if(event==='SIGNED_OUT'){
-    showScreen('auth');
-  } else if(event==='USER_UPDATED'){
+  if(session?.user){
     currentUser=session.user;
+    setUserDisplay(currentUser);
+    await loadUserData(currentUser.id);
+  } else {
+    showScreen('auth');
   }
 });
 
@@ -2361,26 +2356,10 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
-
-// Handle email confirmation tokens in URL hash
-(async()=>{
-  const hash=window.location.hash;
-  if(hash&&hash.includes('access_token')){
-    // Supabase puts tokens in hash after email confirmation
-    showScreen('loading');
-    const {data,error}=await sb.auth.getSession();
-    if(data?.session){
-      currentUser=data.session.user;
-      setUserDisplay(currentUser);
-      history.replaceState(null,'',window.location.pathname);
-      await loadUserData(currentUser.id);
-      return;
-    }
-  }
-  // Normal boot — check existing session
-  const {data:{session}}=await sb.auth.getSession();
+// Check existing session
+sb.auth.getSession().then(({data:{session}})=>{
   if(!session) showScreen('auth');
-})();
+});
 
 </script>
 </body>
