@@ -868,15 +868,135 @@ window.switchAuthTab=function(tab){
   const err=document.getElementById('auth-error');
   if(err) err.style.display='none';
 };
-window.authSubmit=function(){
-  // Will be replaced after Supabase loads
-  setTimeout(function(){if(window._authReady) window._doAuthSubmit();},200);
+
+// ══ SUPABASE REST API — no CDN needed ══
+const SB_URL='https://brrkbhobzpvzqpchwwvg.supabase.co';
+const SB_KEY='sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ';
+
+async function sbRequest(path, method='GET', body=null, token=null){
+  const headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+(token||SB_KEY)};
+  const res=await fetch(SB_URL+path,{method,headers,body:body?JSON.stringify(body):null});
+  return res.json();
+}
+
+// Auth via Supabase Auth REST API
+const sb={
+  auth:{
+    _session:null,
+    async signUp({email,password,options:{data:meta}={}}={}){
+      const res=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password,data:meta})});
+      const data=await res.json();
+      if(data.error||data.msg){return {error:{message:data.error_description||data.msg||data.error}};}
+      if(data.access_token){sb.auth._session=data;localStorage.setItem('eq_session',JSON.stringify(data));}
+      return {data,error:null};
+    },
+    async signInWithPassword({email,password}){
+      const res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});
+      const data=await res.json();
+      if(data.error||data.error_code){return {error:{message:data.error_description||data.error||'Error al iniciar sesión'}};}
+      sb.auth._session=data;
+      localStorage.setItem('eq_session',JSON.stringify(data));
+      return {data,error:null};
+    },
+    async signInWithOAuth({provider,options:{redirectTo}={}}){
+      const url=`${SB_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo||window.location.href)}`;
+      window.location.href=url;
+      return {error:null};
+    },
+    async signOut(){
+      const s=sb.auth._session;
+      if(s) await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});
+      sb.auth._session=null;
+      localStorage.removeItem('eq_session');
+      return {error:null};
+    },
+    async getSession(){
+      // Check URL hash for OAuth callback
+      const hash=window.location.hash;
+      if(hash&&hash.includes('access_token')){
+        const p=new URLSearchParams(hash.replace('#',''));
+        const session={access_token:p.get('access_token'),refresh_token:p.get('refresh_token'),token_type:'bearer',user:{id:p.get('user_id')||'unknown',email:''}};
+        // Get user info
+        try{
+          const ur=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token}});
+          const u=await ur.json();
+          session.user=u;
+        }catch(e){}
+        sb.auth._session=session;
+        localStorage.setItem('eq_session',JSON.stringify(session));
+        window.history.replaceState({},document.title,window.location.pathname);
+        return {data:{session}};
+      }
+      // Check localStorage
+      try{
+        const stored=localStorage.getItem('eq_session');
+        if(stored){
+          const s=JSON.parse(stored);
+          // Verify token still valid
+          const res=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});
+          if(res.ok){const u=await res.json();s.user=u;sb.auth._session=s;return {data:{session:s}};}
+          else{localStorage.removeItem('eq_session');}
+        }
+      }catch(e){localStorage.removeItem('eq_session');}
+      return {data:{session:null}};
+    },
+    async resetPasswordForEmail(email,{redirectTo}={}){
+      const res=await fetch(SB_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,redirect_to:redirectTo})});
+      return res.ok?{error:null}:{error:{message:'Error al enviar el email'}};
+    },
+    onAuthStateChange(cb){
+      // Called manually after getSession
+      window._authCb=cb;
+      return {data:{subscription:{unsubscribe:()=>{}}}};
+    }
+  },
+  from(table){
+    const token=sb.auth._session?.access_token||SB_KEY;
+    const base={headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+token,'Prefer':'return=representation'}};
+    return {
+      select(cols='*'){this._sel=cols;return this;},
+      eq(col,val){this._eq=this._eq||[];this._eq.push(`${col}=eq.${val}`);return this;},
+      order(col,{ascending:asc=true}={}){this._ord=`${col}.${asc?'asc':'desc'}`;return this;},
+      async then(res,rej){
+        try{
+          let url=`${SB_URL}/rest/v1/${table}?select=${this._sel||'*'}`;
+          if(this._eq) url+='&'+this._eq.join('&');
+          if(this._ord) url+=`&order=${this._ord}`;
+          const r=await fetch(url,{...base,headers:{...base.headers,'Range':'0-999'}});
+          const d=await r.json();
+          res({data:Array.isArray(d)?d:[],error:null});
+        }catch(e){rej?rej({data:null,error:e}):res({data:[],error:e});}
+      },
+      async insert(rows){
+        const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',...base,headers:{...base.headers,'Prefer':'return=representation'},body:JSON.stringify(rows)});
+        const d=await r.json();
+        return Array.isArray(d)?{data:d[0]||d,error:null}:{data:d,error:d.message?d:null};
+      },
+      async update(data){
+        let url=`${SB_URL}/rest/v1/${table}?`;
+        if(this._eq) url+=this._eq.join('&');
+        const r=await fetch(url,{method:'PATCH',...base,headers:{...base.headers,'Prefer':'return=representation'},body:JSON.stringify(data)});
+        return {data:await r.json(),error:null};
+      },
+      async upsert(rows,{onConflict}={}){
+        let url=`${SB_URL}/rest/v1/${table}`;
+        if(onConflict) url+=`?on_conflict=${onConflict}`;
+        const r=await fetch(url,{method:'POST',...base,headers:{...base.headers,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(rows)});
+        return {data:await r.json(),error:null};
+      },
+      async delete(){
+        let url=`${SB_URL}/rest/v1/${table}?`;
+        if(this._eq) url+=this._eq.join('&');
+        await fetch(url,{method:'DELETE',...base});
+        return {error:null};
+      },
+      single(){this._single=true;return this;}
+    };
+  }
 };
-window.signInGoogle=function(){setTimeout(function(){if(window._sbReady) window._doSignInGoogle();},200);};
-window.forgotPassword=function(){setTimeout(function(){if(window._sbReady) window._doForgotPassword();},200);};
-window.signOut=function(){setTimeout(function(){if(window._sbReady) window._doSignOut();},200);};
+window.sb=sb;
+console.log('✅ Equilibra Supabase ready');
 </script>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2181,12 +2301,9 @@ function exportPDF(){
 }
 
 // ══════════════════════════════════════════════
-// SUPABASE CONFIG
+// SUPABASE CONFIG — using built-in REST client (defined in head)
 // ══════════════════════════════════════════════
-const SUPABASE_URL = 'https://brrkbhobzpvzqpchwwvg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-window.sb = sb; // Expose immediately
+// sb and window.sb are already initialized above
 let currentUser = null;
 
 // ── AUTH HELPERS ─────────────────────────────
@@ -2485,59 +2602,28 @@ function setUserDisplay(user){
   document.getElementById('user-avatar').textContent=name.charAt(0).toUpperCase();
 }
 
-// ── SUPABASE AUTH LISTENER ────────────────────
-sb.auth.onAuthStateChange(async (event, session)=>{
-  console.log('Auth event:', event, session?.user?.email);
-  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'){
+
+// ══════════════════════════════════════════════
+// ── BOOT ─────────────────────────────────────
+async function checkAuth(){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
     if(session?.user){
       currentUser=session.user;
       setUserDisplay(currentUser);
       await loadUserData(currentUser.id);
-      return;
+    } else {
+      showScreen('auth');
     }
-  }
-  if(event==='SIGNED_OUT'||(!session&&event==='INITIAL_SESSION')){
+  }catch(e){
+    console.error('Auth check error:',e);
     showScreen('auth');
   }
-});
-
-// ── BOOT ─────────────────────────────────────
-// Signal that sb is ready
-window.sb=sb;
-window._sbReady=true;
+}
 showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
-
-// Handle email confirmation / password reset tokens in URL
-async function handleURLTokens(){
-  const hash=window.location.hash;
-  const params=new URLSearchParams(window.location.search);
-  // Check for tokens in hash (Supabase puts them there after email confirm)
-  if(hash&&hash.includes('access_token')){
-    const hashParams=new URLSearchParams(hash.replace('#',''));
-    const accessToken=hashParams.get('access_token');
-    const refreshToken=hashParams.get('refresh_token');
-    if(accessToken){
-      const {data,error}=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken||''});
-      if(!error&&data.session){
-        // Clean URL
-        window.history.replaceState({},document.title,window.location.pathname);
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-// Boot sequence
-(async()=>{
-  const handledToken=await handleURLTokens();
-  if(!handledToken){
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session) showScreen('auth');
-  }
-})();
+checkAuth();
 
 // ══════════════════════════════════════════════
 // MOTIVATIONAL CONTENT
