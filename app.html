@@ -280,7 +280,7 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
       <!-- Error msg -->
       <div id="auth-error" style="display:none;font-size:12px;color:var(--red);background:var(--red-bg);padding:8px 12px;border-radius:6px;margin-bottom:14px"></div>
       <!-- Submit -->
-      <button onclick="authSubmit()" id="auth-btn" style="width:100%;padding:12px;font-size:14px;font-weight:500;background:var(--ink);color:var(--bg);border:none;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s">Iniciar sesión</button>
+      <button onclick="if(this._fullImpl)this._fullImpl();else authSubmit()" id="auth-btn" style="width:100%;padding:12px;font-size:14px;font-weight:500;background:var(--ink);color:var(--bg);border:none;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s">Iniciar sesión</button>
       <!-- Divider -->
       <div style="display:flex;align-items:center;gap:12px;margin:20px 0">
         <div style="flex:1;height:0.5px;background:var(--border)"></div>
@@ -850,6 +850,35 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 </div>
 
 <!-- SCRIPTS -->
+<script>
+// Auth stubs — defined early so onclick handlers work before external scripts load
+function switchAuthTab(tab){
+  const isLogin=tab==='login';
+  const tl=document.getElementById('tab-login');
+  const tr=document.getElementById('tab-register');
+  const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
+  tl.style.cssText=base+(isLogin?'background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:var(--muted)');
+  tr.style.cssText=base+(!isLogin?'background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:var(--muted)');
+  const nw=document.getElementById('auth-name-wrap');
+  if(nw) nw.style.display=isLogin?'none':'block';
+  const btn=document.getElementById('auth-btn');
+  if(btn){btn.textContent=isLogin?'Iniciar sesión':'Crear cuenta';btn.dataset.mode=tab;}
+  const fl=document.getElementById('forgot-link');
+  if(fl) fl.style.display=isLogin?'':'none';
+  const err=document.getElementById('auth-error');
+  if(err) err.style.display='none';
+}
+function authSubmit(){
+  // Will be overridden by full implementation after scripts load
+  const btn=document.getElementById('auth-btn');
+  if(btn&&btn._fullImpl) return btn._fullImpl();
+  // Fallback: wait for scripts
+  setTimeout(()=>{const b=document.getElementById('auth-btn');if(b&&b._fullImpl)b._fullImpl();},500);
+}
+function signInGoogle(){if(window._signInGoogle) window._signInGoogle();}
+function forgotPassword(){if(window._forgotPassword) window._forgotPassword();}
+function signOut(){if(window._signOut) window._signOut();}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2191,6 +2220,7 @@ function setAuthError(msg){
 }
 
 async function authSubmit(){
+  // Full implementation — called after Supabase is loaded
   const btn=document.getElementById('auth-btn');
   const mode=btn.dataset.mode||'login';
   const email=document.getElementById('auth-email').value.trim();
@@ -2200,7 +2230,7 @@ async function authSubmit(){
   document.getElementById('auth-error').style.display='none';
   try{
     if(mode==='register'){
-      const name=document.getElementById('auth-name').value.trim()||email.split('@')[0];
+      const name=document.getElementById('auth-name')?.value.trim()||email.split('@')[0];
       const {error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
       if(error) throw error;
       setAuthError('✓ Revisá tu email para confirmar tu cuenta');
@@ -2215,10 +2245,13 @@ async function authSubmit(){
     btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'; btn.disabled=false;
   }
 }
+// Also register as window global and patch button
+window.authSubmit=authSubmit;
+const _authBtn=document.getElementById('auth-btn');
+if(_authBtn) _authBtn._fullImpl=authSubmit;
 
-async function signInGoogle(){
-  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
-}
+async function signInGoogle(){ await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}}); }
+window._signInGoogle=signInGoogle;
 
 async function forgotPassword(){
   const email=document.getElementById('auth-email').value.trim();
@@ -2227,12 +2260,43 @@ async function forgotPassword(){
   if(error) setAuthError(error.message);
   else setAuthError('✓ Revisá tu email para restablecer la contraseña');
 }
+window._forgotPassword=forgotPassword;
 
 async function signOut(){
   await sb.auth.signOut();
   currentUser=null; txns=[]; budgets={}; objectives=[]; debts=[];
   showScreen('auth');
 }
+window._signOut=signOut;
+
+// Register full authSubmit
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.getElementById('auth-btn');
+  if(btn) btn._fullImpl=async function(){
+    const mode=btn.dataset.mode||'login';
+    const email=document.getElementById('auth-email').value.trim();
+    const password=document.getElementById('auth-password').value;
+    if(!email||!password){setAuthError('Completá email y contraseña');return;}
+    btn.textContent='...'; btn.disabled=true;
+    document.getElementById('auth-error').style.display='none';
+    try{
+      if(mode==='register'){
+        const name=document.getElementById('auth-name').value.trim()||email.split('@')[0];
+        const {error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
+        if(error) throw error;
+        setAuthError('✓ Revisá tu email para confirmar tu cuenta');
+        btn.textContent='Crear cuenta'; btn.disabled=false;
+      } else {
+        const {error}=await sb.auth.signInWithPassword({email,password});
+        if(error) throw error;
+      }
+    } catch(e){
+      const msgs={'Invalid login credentials':'Email o contraseña incorrectos','Email not confirmed':'Confirmá tu email antes de ingresar','User already registered':'Ya existe una cuenta con ese email'};
+      setAuthError(msgs[e.message]||e.message);
+      btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'; btn.disabled=false;
+    }
+  };
+});
 
 // ── LOAD USER DATA FROM SUPABASE ─────────────
 async function loadUserData(userId){
