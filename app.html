@@ -911,31 +911,47 @@ const sb={
       return {error:null};
     },
     async getSession(){
-      // Check URL hash for OAuth callback
-      const hash=window.location.hash;
-      if(hash&&hash.includes('access_token')){
-        const p=new URLSearchParams(hash.replace('#',''));
-        const session={access_token:p.get('access_token'),refresh_token:p.get('refresh_token'),token_type:'bearer',user:{id:p.get('user_id')||'unknown',email:''}};
-        // Get user info
-        try{
-          const ur=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token}});
-          const u=await ur.json();
-          session.user=u;
-        }catch(e){}
-        sb.auth._session=session;
-        localStorage.setItem('eq_session',JSON.stringify(session));
-        window.history.replaceState({},document.title,window.location.pathname);
-        return {data:{session}};
+      // Check URL hash OR query string for OAuth callback
+      const rawHash=window.location.hash||'';
+      const rawSearch=window.location.search||'';
+      const source=rawHash.includes('access_token')?rawHash:rawSearch.includes('access_token')?rawSearch:'';
+      if(source){
+        const paramStr=source.startsWith('#')||source.startsWith('?')?source.slice(1):source;
+        const p=new URLSearchParams(paramStr);
+        const access_token=p.get('access_token');
+        const refresh_token=p.get('refresh_token')||'';
+        if(access_token){
+          // Build user from JWT (with proper base64 padding)
+          let user={id:'unknown',email:''};
+          try{
+            const b64=access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+            const padded=b64.padEnd(b64.length+(4-b64.length%4)%4,'=');
+            const pl=JSON.parse(atob(padded));
+            const meta=pl.user_metadata||{};
+            user={id:pl.sub,email:pl.email||meta.email||'',user_metadata:meta,app_metadata:pl.app_metadata||{}};
+          }catch(e){
+            // JWT decode failed — fetch user from API
+            try{
+              const ur=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+access_token}});
+              if(ur.ok) user=await ur.json();
+            }catch(e2){}
+          }
+          const session={access_token,refresh_token,user};
+          sb.auth._session=session;
+          localStorage.setItem('eq_session',JSON.stringify(session));
+          window.history.replaceState({},document.title,window.location.pathname);
+          return {data:{session}};
+        }
       }
-      // Check localStorage
+      // Check localStorage — but DON'T verify via network (token may be fresh and valid)
       try{
         const stored=localStorage.getItem('eq_session');
         if(stored){
           const s=JSON.parse(stored);
-          // Verify token still valid
-          const res=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});
-          if(res.ok){const u=await res.json();s.user=u;sb.auth._session=s;return {data:{session:s}};}
-          else{localStorage.removeItem('eq_session');}
+          if(s&&s.access_token&&s.user){
+            sb.auth._session=s;
+            return {data:{session:s}};
+          }
         }
       }catch(e){localStorage.removeItem('eq_session');}
       return {data:{session:null}};
@@ -2607,61 +2623,8 @@ function setUserDisplay(user){
 // ── BOOT ─────────────────────────────────────
 async function checkAuth(){
   try{
-    // First check if there's an OAuth callback in the URL hash
-    const hash=window.location.hash||window.location.search;
-    if(hash&&hash.includes('access_token')){
-      // Support both hash (#) and query string (?) formats
-      const paramStr=hash.startsWith('#')?hash.slice(1):hash.startsWith('?')?hash.slice(1):hash;
-      const p=new URLSearchParams(paramStr);
-      const access_token=p.get('access_token');
-      const refresh_token=p.get('refresh_token')||'';
-      if(access_token){
-        // Always clean the URL immediately
-        window.history.replaceState({},document.title,window.location.pathname);
-        try{
-          // Decode JWT payload — pad base64 if needed
-          const b64=access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-          const padded=b64.padEnd(b64.length+(4-b64.length%4)%4,'=');
-          const payload=JSON.parse(atob(padded));
-          const meta=payload.user_metadata||{};
-          const user={
-            id:payload.sub,
-            email:payload.email||meta.email||'',
-            user_metadata:meta,
-            app_metadata:payload.app_metadata||{}
-          };
-          const session={access_token,refresh_token,user};
-          sb.auth._session=session;
-          localStorage.setItem('eq_session',JSON.stringify(session));
-          currentUser=user;
-          setUserDisplay(currentUser);
-          await loadUserData(currentUser.id);
-          return;
-        }catch(e){
-          console.error('JWT decode error:',e);
-          // Fall through to try fetching user info directly with the token
-          try{
-            const p2=new URLSearchParams(paramStr);
-            const at=p2.get('access_token');
-            const rt=p2.get('refresh_token')||'';
-            const ur=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+at}});
-            if(ur.ok){
-              const u=await ur.json();
-              const session={access_token:at,refresh_token:rt,user:u};
-              sb.auth._session=session;
-              localStorage.setItem('eq_session',JSON.stringify(session));
-              currentUser=u;
-              setUserDisplay(currentUser);
-              await loadUserData(currentUser.id);
-              return;
-            }
-          }catch(e2){console.error('Fallback user fetch error:',e2);}
-        }
-      }
-    }
-    // Then check stored session
     const {data:{session}}=await sb.auth.getSession();
-    if(session?.user){
+    if(session&&session.user&&session.user.id&&session.user.id!=='unknown'){
       currentUser=session.user;
       setUserDisplay(currentUser);
       await loadUserData(currentUser.id);
