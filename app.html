@@ -2380,6 +2380,13 @@ function setAuthError(msg){
   el.textContent=msg; el.style.display='block';
 }
 
+// ── FUNCION CENTRAL: entrar a la app con un usuario autenticado ──
+async function enterApp(user){
+  currentUser = user;
+  setUserDisplay(currentUser);
+  await loadUserData(currentUser.id);
+}
+
 async function authSubmit(){
   const btn=document.getElementById('auth-btn');
   const mode=btn.dataset.mode||'login';
@@ -2391,13 +2398,20 @@ async function authSubmit(){
   try{
     if(mode==='register'){
       const name=document.getElementById('auth-name')?.value.trim()||email.split('@')[0];
-      const {error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
+      const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
       if(error) throw error;
-      setAuthError('✓ Revisá tu email para confirmar tu cuenta');
-      btn.textContent='Crear cuenta'; btn.disabled=false;
+      // Si Supabase no requiere confirmacion de email, loguear directo
+      if(data?.user?.confirmed_at || data?.session){
+        await enterApp(data.user);
+      } else {
+        setAuthError('✓ Revisá tu email para confirmar tu cuenta');
+        btn.textContent='Crear cuenta'; btn.disabled=false;
+      }
     } else {
-      const {error}=await sb.auth.signInWithPassword({email,password});
+      const {data,error}=await sb.auth.signInWithPassword({email,password});
       if(error) throw error;
+      // ← PASO CRÍTICO: entrar a la app con el usuario logueado
+      await enterApp(data.user);
     }
   } catch(e){
     const msgs={'Invalid login credentials':'Email o contraseña incorrectos','Email not confirmed':'Confirmá tu email antes de ingresar','User already registered':'Ya existe una cuenta con ese email'};
@@ -2405,30 +2419,25 @@ async function authSubmit(){
     btn.textContent=mode==='login'?'Iniciar sesión':'Crear cuenta'; btn.disabled=false;
   }
 }
-// Override window stubs with real implementations
-window.authSubmit=authSubmit;
-window._doAuthSubmit=authSubmit;
-window._authReady=true;
-window._sbReady=true;
-window._doSignInGoogle=async function(){
-  const redirectTo='https://pmfinanzasokr.netlify.app/app.html';
-  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
-  if(error) console.error('Google auth error:',error);
-};
-window._doForgotPassword=async function(){
+
+async function signOut(){
+  currentUser=null; txns=[]; budgets={}; objectives=[]; debts=[];
+  await sb.auth.signOut();
+  showScreen('auth');
+}
+
+async function forgotPassword(){
   const email=document.getElementById('auth-email').value.trim();
   if(!email){setAuthError('Ingresá tu email primero');return;}
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
   if(error) setAuthError(error.message);
   else setAuthError('✓ Revisá tu email para restablecer la contraseña');
-};
-window._doSignOut=async function(){
-  currentUser=null; txns=[]; budgets={}; objectives=[]; debts=[];
-  await sb.auth.signOut();
-  // onAuthStateChange va a disparar showScreen('auth') automaticamente
-};
+}
 
-// Auth functions registered above as window globals
+window.authSubmit=authSubmit;
+window.signOut=signOut;
+window.forgotPassword=forgotPassword;
+window.switchAuthTab=switchAuthTab;
 
 // ── LOAD USER DATA FROM SUPABASE ─────────────
 async function loadUserData(userId){
@@ -2659,9 +2668,7 @@ async function checkAuth(){
   try{
     const {data:{session}}=await sb.auth.getSession();
     if(session&&session.user){
-      currentUser=session.user;
-      setUserDisplay(currentUser);
-      await loadUserData(currentUser.id);
+      await enterApp(session.user);
     }else{
       showScreen('auth');
     }
@@ -2672,23 +2679,10 @@ async function checkAuth(){
 }
 window.checkAuth=checkAuth;
 
-// Si hay un access_token en el hash (callback OAuth), esperar un tick
-// para que el browser lo tenga disponible completamente.
-// Si no hay hash, ejecutar inmediatamente.
-function bootAuth(){
-  const hasOAuthCallback = window.location.hash && window.location.hash.includes('access_token');
-  if(hasOAuthCallback){
-    // Dar tiempo al browser para terminar de setear el hash
-    setTimeout(checkAuth, 100);
-  } else {
-    checkAuth();
-  }
-}
-
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', bootAuth);
+  document.addEventListener('DOMContentLoaded', checkAuth);
 }else{
-  bootAuth();
+  checkAuth();
 }
 
 // ══════════════════════════════════════════════
