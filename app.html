@@ -2382,9 +2382,12 @@ function setAuthError(msg){
 
 // ── FUNCION CENTRAL: entrar a la app con un usuario autenticado ──
 async function enterApp(user){
+  console.log('[enterApp] user:', user?.email, 'id:', user?.id);
   currentUser = user;
   setUserDisplay(currentUser);
+  console.log('[enterApp] llamando loadUserData...');
   await loadUserData(currentUser.id);
+  console.log('[enterApp] loadUserData completado');
 }
 
 async function authSubmit(){
@@ -2666,24 +2669,27 @@ document.getElementById('auth-btn').dataset.mode='login';
 
 async function checkAuth(){
   try{
+    console.log('[1] checkAuth iniciado, hash:', window.location.hash.substring(0,50));
     const {data:{session}}=await sb.auth.getSession();
+    console.log('[2] getSession resultado:', session ? 'sesion OK user='+session.user?.email : 'SIN SESION');
     if(session&&session.user){
+      console.log('[3] llamando enterApp...');
       await enterApp(session.user);
+      console.log('[4] enterApp completado');
     }else{
+      console.log('[3] sin sesion -> showScreen auth');
       showScreen('auth');
     }
   }catch(e){
-    console.error('Auth error:',e);
+    console.error('[ERROR] checkAuth:', e);
     showScreen('auth');
   }
 }
 window.checkAuth=checkAuth;
 
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', checkAuth);
-}else{
-  checkAuth();
-}
+// Usar window.onload garantiza que el hash de OAuth ya fue procesado
+// por el browser antes de que checkAuth intente leerlo
+window.addEventListener('load', checkAuth);
 
 // ══════════════════════════════════════════════
 // MOTIVATIONAL CONTENT
