@@ -1039,8 +1039,29 @@ const sb={
   }
 };
 window.sb=sb;
-// _sbClient apunta al mismo objeto para compatibilidad con botones inline
 window._sbClient={auth:{signInWithOAuth:(opts)=>sb.auth.signInWithOAuth(opts)}};
+
+// Funciones de UI que los botones HTML necesitan INMEDIATAMENTE
+window.switchAuthTab=function(tab){
+  const isLogin=tab==='login';
+  const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
+  const tl=document.getElementById('tab-login');
+  const tr=document.getElementById('tab-register');
+  if(tl) tl.style.cssText=base+(isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
+  if(tr) tr.style.cssText=base+(!isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
+  const nw=document.getElementById('auth-name-wrap');
+  if(nw) nw.style.display=isLogin?'none':'block';
+  const btn=document.getElementById('auth-btn');
+  if(btn){btn.textContent=isLogin?'Iniciar sesión':'Crear cuenta';btn.dataset.mode=tab;}
+  const fl=document.getElementById('forgot-link');
+  if(fl) fl.style.display=isLogin?'':'none';
+  const err=document.getElementById('auth-error');
+  if(err) err.style.display='none';
+};
+window.authSubmit=function(){if(window._authSubmit) window._authSubmit(); };
+window.forgotPassword=function(){if(window._forgotPassword) window._forgotPassword();};
+window.signOut=function(){if(window._signOut) window._signOut();};
+
 console.log('✅ Equilibra Supabase ready');
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -2437,10 +2458,16 @@ async function forgotPassword(){
   else setAuthError('✓ Revisá tu email para restablecer la contraseña');
 }
 
+// Conectar implementaciones reales a los placeholders del primer script
+window._authSubmit=authSubmit;
+window._signOut=signOut;
+window._forgotPassword=forgotPassword;
 window.authSubmit=authSubmit;
 window.signOut=signOut;
 window.forgotPassword=forgotPassword;
 window.switchAuthTab=switchAuthTab;
+window.checkAuth=checkAuth;
+window.enterApp=enterApp;
 
 // ── LOAD USER DATA FROM SUPABASE ─────────────
 async function loadUserData(userId){
