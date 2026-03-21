@@ -850,126 +850,198 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 </div>
 
 <!-- SCRIPTS -->
-<!-- Supabase SDK oficial (maneja OAuth hash automaticamente) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-window.switchAuthTab=function(tab){
-  const isLogin=tab==='login';
-  const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
-  const tl=document.getElementById('tab-login');
-  const tr=document.getElementById('tab-register');
-  if(tl) tl.style.cssText=base+(isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
-  if(tr) tr.style.cssText=base+(!isLogin?'background:white;color:#0e0e0c;box-shadow:0 1px 4px rgba(0,0,0,0.08)':'background:transparent;color:#8a8880');
-  const nw=document.getElementById('auth-name-wrap');
-  if(nw) nw.style.display=isLogin?'none':'block';
-  const btn=document.getElementById('auth-btn');
-  if(btn){btn.textContent=isLogin?'Iniciar sesión':'Crear cuenta';btn.dataset.mode=tab;}
-  const fl=document.getElementById('forgot-link');
-  if(fl) fl.style.display=isLogin?'':'none';
-  const err=document.getElementById('auth-error');
-  if(err) err.style.display='none';
-};
-
-// ══ SUPABASE — usando SDK oficial v2 ══
-// El SDK maneja automaticamente el hash de OAuth, refresh de tokens, y sesiones
+// ══ SUPABASE AUTH — implementacion directa y simple ══
 const SB_URL='https://brrkbhobzpvzqpchwwvg.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycmtiaG9ienB2enFwY2h3d3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4Njg3MTgsImV4cCI6MjA4OTQ0NDcxOH0.U24D-GH39PX1ychOGzIFYe9oZkYH78ZYyNn08TzMglY';
+const REDIRECT_URL='https://pmfinanzasokr.netlify.app/app.html';
 
-const _sbClient = supabase.createClient(SB_URL, SB_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,   // ← esto procesa el #access_token automaticamente
-    storageKey: 'eq_session',
-    storage: window.localStorage,
-  }
-});
+// ── Decode JWT sin libreria ──
+function decodeJWT(token){
+  try{
+    const b64=token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const padded=b64.padEnd(b64.length+(4-b64.length%4)%4,'=');
+    return JSON.parse(atob(padded));
+  }catch(e){return null;}
+}
 
-// Wrapper que mantiene la misma API que antes (sb.auth.*, sb.from())
-// para no tener que cambiar nada del resto del codigo
-const sb = {
-  auth: {
-    get _session(){ return _sbClient.auth._currentSession; },
-    async signUp({email,password,options}={}){
-      const {data,error} = await _sbClient.auth.signUp({email,password,options});
-      if(error) return {error};
-      return {data,error:null};
+// ── Cliente Supabase ──
+const sb={
+  auth:{
+    _session:null,
+
+    // Login con Google — fuerza implicit flow para recibir token en el hash
+    async signInWithOAuth({provider,options={}}={}){
+      const redirectTo=options.redirectTo||REDIRECT_URL;
+      const url=SB_URL+'/auth/v1/authorize'
+        +'?provider='+provider
+        +'&redirect_to='+encodeURIComponent(redirectTo)
+        +'&flow_type=implicit';
+      window.location.href=url;
     },
+
+    // Login con email/password
     async signInWithPassword({email,password}){
-      const {data,error} = await _sbClient.auth.signInWithPassword({email,password});
-      if(error) return {error};
+      const res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({email,password})
+      });
+      const data=await res.json();
+      if(data.error||data.error_code) return {error:{message:data.error_description||data.error||'Error al iniciar sesión'}};
+      sb.auth._session=data;
+      localStorage.setItem('eq_session',JSON.stringify(data));
       return {data,error:null};
     },
-    async signInWithOAuth({provider,options}){
-      const {error} = await _sbClient.auth.signInWithOAuth({provider,options});
-      return {error};
+
+    // Registro
+    async signUp({email,password,options:{data:meta}={}}={}){
+      const res=await fetch(SB_URL+'/auth/v1/signup',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({email,password,data:meta})
+      });
+      const data=await res.json();
+      if(data.error||data.msg) return {error:{message:data.error_description||data.msg||data.error}};
+      if(data.access_token){sb.auth._session=data;localStorage.setItem('eq_session',JSON.stringify(data));}
+      return {data,error:null};
     },
+
+    // Cerrar sesion
     async signOut(){
-      await _sbClient.auth.signOut();
+      const s=sb.auth._session;
+      if(s?.access_token){
+        try{await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});}catch(e){}
+      }
+      sb.auth._session=null;
+      localStorage.removeItem('eq_session');
       return {error:null};
     },
+
+    // Recuperar sesion — desde hash OAuth o localStorage
     async getSession(){
-      const {data,error} = await _sbClient.auth.getSession();
-      return {data:{session: data?.session || null}};
+      // 1) Verificar hash en URL (#access_token=...)
+      const hash=window.location.hash;
+      if(hash&&hash.includes('access_token')){
+        const p=new URLSearchParams(hash.slice(1));
+        const access_token=p.get('access_token');
+        const refresh_token=p.get('refresh_token')||'';
+        if(access_token){
+          // Limpiar URL inmediatamente
+          window.history.replaceState({},document.title,window.location.pathname);
+          // Decodificar JWT para obtener datos del usuario
+          const payload=decodeJWT(access_token);
+          if(payload&&payload.sub){
+            const meta=payload.user_metadata||{};
+            const user={id:payload.sub,email:payload.email||meta.email||'',user_metadata:meta,app_metadata:payload.app_metadata||{}};
+            const session={access_token,refresh_token,user};
+            sb.auth._session=session;
+            localStorage.setItem('eq_session',JSON.stringify(session));
+            return {data:{session}};
+          }
+        }
+      }
+      // 2) Verificar sesion guardada en localStorage
+      try{
+        const stored=localStorage.getItem('eq_session');
+        if(stored){
+          const s=JSON.parse(stored);
+          if(s&&s.access_token&&s.user){
+            // Verificar que el token no expiró
+            const payload=decodeJWT(s.access_token);
+            const now=Math.floor(Date.now()/1000);
+            if(payload&&payload.exp&&payload.exp>now){
+              sb.auth._session=s;
+              return {data:{session:s}};
+            } else {
+              // Token expirado — intentar refresh
+              if(s.refresh_token){
+                try{
+                  const res=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','apikey':SB_KEY},
+                    body:JSON.stringify({refresh_token:s.refresh_token})
+                  });
+                  if(res.ok){
+                    const newSession=await res.json();
+                    sb.auth._session=newSession;
+                    localStorage.setItem('eq_session',JSON.stringify(newSession));
+                    return {data:{session:newSession}};
+                  }
+                }catch(e){}
+              }
+              localStorage.removeItem('eq_session');
+            }
+          }
+        }
+      }catch(e){localStorage.removeItem('eq_session');}
+      return {data:{session:null}};
     },
-    async resetPasswordForEmail(email,opts){
-      const {error} = await _sbClient.auth.resetPasswordForEmail(email,opts);
-      return error ? {error} : {error:null};
+
+    async resetPasswordForEmail(email,{redirectTo}={}){
+      const res=await fetch(SB_URL+'/auth/v1/recover',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({email,redirect_to:redirectTo||REDIRECT_URL})
+      });
+      return res.ok?{error:null}:{error:{message:'Error al enviar el email'}};
     },
+
     onAuthStateChange(cb){
-      return _sbClient.auth.onAuthStateChange(cb);
+      window._authCb=cb;
+      return {data:{subscription:{unsubscribe:()=>{}}}};
     }
   },
+
   from(table){
-    // Wrapper sobre fetch REST directo para mantener compatibilidad
-    // Usa el token de sesion actual del SDK
-    const getToken = () => _sbClient.auth._currentSession?.access_token || SB_KEY;
-    const base = () => ({headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+getToken(),'Prefer':'return=representation'}});
-    const q = {
-      _table: table, _sel: '*', _eq: [], _ord: null,
+    const getToken=()=>sb.auth._session?.access_token||SB_KEY;
+    const hdrs=()=>({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+getToken(),'Prefer':'return=representation'});
+    return {
+      _sel:'*',_eq:[],_ord:null,
       select(cols='*'){this._sel=cols;return this;},
       eq(col,val){this._eq.push(`${col}=eq.${val}`);return this;},
       order(col,{ascending:asc=true}={}){this._ord=`${col}.${asc?'asc':'desc'}`;return this;},
-      single(){this._single=true;return this;},
+      single(){return this;},
       async then(res,rej){
         try{
           let url=`${SB_URL}/rest/v1/${table}?select=${this._sel}`;
-          if(this._eq.length) url+='&'+this._eq.join('&');
-          if(this._ord) url+=`&order=${this._ord}`;
-          const r=await fetch(url,{headers:{...base().headers,'Range':'0-999'}});
+          if(this._eq.length)url+='&'+this._eq.join('&');
+          if(this._ord)url+=`&order=${this._ord}`;
+          const r=await fetch(url,{headers:{...hdrs(),'Range':'0-999'}});
           const d=await r.json();
           res({data:Array.isArray(d)?d:[],error:null});
         }catch(e){rej?rej({data:null,error:e}):res({data:[],error:e});}
       },
       async insert(rows){
-        const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',...base(),body:JSON.stringify(rows)});
+        const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:hdrs(),body:JSON.stringify(rows)});
         const d=await r.json();
         return Array.isArray(d)?{data:d[0]||d,error:null}:{data:d,error:d.message?d:null};
       },
       async update(data){
         let url=`${SB_URL}/rest/v1/${table}?`;
-        if(this._eq.length) url+=this._eq.join('&');
-        const r=await fetch(url,{method:'PATCH',...base(),body:JSON.stringify(data)});
+        if(this._eq.length)url+=this._eq.join('&');
+        const r=await fetch(url,{method:'PATCH',headers:hdrs(),body:JSON.stringify(data)});
         return {data:await r.json(),error:null};
       },
       async upsert(rows,{onConflict}={}){
         let url=`${SB_URL}/rest/v1/${table}`;
-        if(onConflict) url+=`?on_conflict=${onConflict}`;
-        const r=await fetch(url,{method:'POST',headers:{...base().headers,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(rows)});
+        if(onConflict)url+=`?on_conflict=${onConflict}`;
+        const r=await fetch(url,{method:'POST',headers:{...hdrs(),'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(rows)});
         return {data:await r.json(),error:null};
       },
       async delete(){
         let url=`${SB_URL}/rest/v1/${table}?`;
-        if(this._eq.length) url+=this._eq.join('&');
-        await fetch(url,{method:'DELETE',...base()});
+        if(this._eq.length)url+=this._eq.join('&');
+        await fetch(url,{method:'DELETE',headers:hdrs()});
         return {error:null};
       },
     };
-    return q;
   }
 };
 window.sb=sb;
-console.log('✅ Equilibra — Supabase SDK v2 listo');
+// _sbClient apunta al mismo objeto para compatibilidad con botones inline
+window._sbClient={auth:{signInWithOAuth:(opts)=>sb.auth.signInWithOAuth(opts)}};
+console.log('✅ Equilibra Supabase ready');
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2583,34 +2655,26 @@ showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
 
-// El SDK de Supabase emite onAuthStateChange automaticamente cuando:
-// - Detecta #access_token en la URL luego de OAuth → evento SIGNED_IN
-// - Hay sesion guardada en localStorage → evento INITIAL_SESSION con session
-// - No hay sesion → evento INITIAL_SESSION con session=null
-// - Se cierra sesion → evento SIGNED_OUT
-let _appLoaded = false;
-_sbClient.auth.onAuthStateChange(async (event, session) => {
-  console.log('[Equilibra] Auth event:', event, '| user:', session?.user?.email || 'none');
-
-  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user){
-    // Limpiar hash de la URL si quedaron tokens expuestos
-    if(window.location.hash.includes('access_token')){
-      window.history.replaceState({}, document.title, window.location.pathname);
+async function checkAuth(){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&session.user){
+      currentUser=session.user;
+      setUserDisplay(currentUser);
+      await loadUserData(currentUser.id);
+    }else{
+      showScreen('auth');
     }
-    // Si ya cargamos la app con este usuario, no recargar datos
-    if(_appLoaded && currentUser?.id === session.user.id) return;
-    currentUser = session.user;
-    setUserDisplay(currentUser);
-    _appLoaded = true;
-    await loadUserData(currentUser.id);
-  } else if(event === 'SIGNED_OUT'){
-    _appLoaded = false;
-    showScreen('auth');
-  } else if(event === 'INITIAL_SESSION' && !session){
-    // No hay sesion guardada ni en URL
+  }catch(e){
+    console.error('Auth error:',e);
     showScreen('auth');
   }
-});
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',checkAuth);
+}else{
+  checkAuth();
+}
 
 // ══════════════════════════════════════════════
 // MOTIVATIONAL CONTENT
