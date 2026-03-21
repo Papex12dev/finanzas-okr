@@ -2670,10 +2670,25 @@ async function checkAuth(){
     showScreen('auth');
   }
 }
+window.checkAuth=checkAuth;
+
+// Si hay un access_token en el hash (callback OAuth), esperar un tick
+// para que el browser lo tenga disponible completamente.
+// Si no hay hash, ejecutar inmediatamente.
+function bootAuth(){
+  const hasOAuthCallback = window.location.hash && window.location.hash.includes('access_token');
+  if(hasOAuthCallback){
+    // Dar tiempo al browser para terminar de setear el hash
+    setTimeout(checkAuth, 100);
+  } else {
+    checkAuth();
+  }
+}
+
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',checkAuth);
+  document.addEventListener('DOMContentLoaded', bootAuth);
 }else{
-  checkAuth();
+  bootAuth();
 }
 
 // ══════════════════════════════════════════════
