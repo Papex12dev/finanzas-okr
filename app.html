@@ -850,8 +850,9 @@ input.error,select.error{border-color:var(--red)!important;background:var(--red-
 </div>
 
 <!-- SCRIPTS -->
+<!-- Supabase SDK oficial (maneja OAuth hash automaticamente) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-// Placeholder functions — will be replaced after Supabase loads
 window.switchAuthTab=function(tab){
   const isLogin=tab==='login';
   const base='flex:1;padding:7px;font-size:13px;font-weight:500;border:none;border-radius:16px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;';
@@ -869,149 +870,106 @@ window.switchAuthTab=function(tab){
   if(err) err.style.display='none';
 };
 
-// ══ SUPABASE REST API — no CDN needed ══
+// ══ SUPABASE — usando SDK oficial v2 ══
+// El SDK maneja automaticamente el hash de OAuth, refresh de tokens, y sesiones
 const SB_URL='https://brrkbhobzpvzqpchwwvg.supabase.co';
-const SB_KEY='sb_publishable_RiFxJV7P04y8aImFO1Naxg_K05lskcJ';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycmtiaG9ienB2enFwY2h3d3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4Njg3MTgsImV4cCI6MjA4OTQ0NDcxOH0.U24D-GH39PX1ychOGzIFYe9oZkYH78ZYyNn08TzMglY';
 
-async function sbRequest(path, method='GET', body=null, token=null){
-  const headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+(token||SB_KEY)};
-  const res=await fetch(SB_URL+path,{method,headers,body:body?JSON.stringify(body):null});
-  return res.json();
-}
+const _sbClient = supabase.createClient(SB_URL, SB_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,   // ← esto procesa el #access_token automaticamente
+    storageKey: 'eq_session',
+    storage: window.localStorage,
+  }
+});
 
-// Auth via Supabase Auth REST API
-const sb={
-  auth:{
-    _session:null,
-    async signUp({email,password,options:{data:meta}={}}={}){
-      const res=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password,data:meta})});
-      const data=await res.json();
-      if(data.error||data.msg){return {error:{message:data.error_description||data.msg||data.error}};}
-      if(data.access_token){sb.auth._session=data;localStorage.setItem('eq_session',JSON.stringify(data));}
+// Wrapper que mantiene la misma API que antes (sb.auth.*, sb.from())
+// para no tener que cambiar nada del resto del codigo
+const sb = {
+  auth: {
+    get _session(){ return _sbClient.auth._currentSession; },
+    async signUp({email,password,options}={}){
+      const {data,error} = await _sbClient.auth.signUp({email,password,options});
+      if(error) return {error};
       return {data,error:null};
     },
     async signInWithPassword({email,password}){
-      const res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});
-      const data=await res.json();
-      if(data.error||data.error_code){return {error:{message:data.error_description||data.error||'Error al iniciar sesión'}};}
-      sb.auth._session=data;
-      localStorage.setItem('eq_session',JSON.stringify(data));
+      const {data,error} = await _sbClient.auth.signInWithPassword({email,password});
+      if(error) return {error};
       return {data,error:null};
     },
-    async signInWithOAuth({provider,options:{redirectTo}={}}){
-      const url=`${SB_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo||window.location.href)}`;
-      window.location.href=url;
-      return {error:null};
+    async signInWithOAuth({provider,options}){
+      const {error} = await _sbClient.auth.signInWithOAuth({provider,options});
+      return {error};
     },
     async signOut(){
-      const s=sb.auth._session;
-      if(s) await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});
-      sb.auth._session=null;
-      localStorage.removeItem('eq_session');
+      await _sbClient.auth.signOut();
       return {error:null};
     },
     async getSession(){
-      // Check URL hash OR query string for OAuth callback
-      const rawHash=window.location.hash||'';
-      const rawSearch=window.location.search||'';
-      const source=rawHash.includes('access_token')?rawHash:rawSearch.includes('access_token')?rawSearch:'';
-      if(source){
-        const paramStr=source.startsWith('#')||source.startsWith('?')?source.slice(1):source;
-        const p=new URLSearchParams(paramStr);
-        const access_token=p.get('access_token');
-        const refresh_token=p.get('refresh_token')||'';
-        if(access_token){
-          // Build user from JWT (with proper base64 padding)
-          let user={id:'unknown',email:''};
-          try{
-            const b64=access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-            const padded=b64.padEnd(b64.length+(4-b64.length%4)%4,'=');
-            const pl=JSON.parse(atob(padded));
-            const meta=pl.user_metadata||{};
-            user={id:pl.sub,email:pl.email||meta.email||'',user_metadata:meta,app_metadata:pl.app_metadata||{}};
-          }catch(e){
-            // JWT decode failed — fetch user from API
-            try{
-              const ur=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+access_token}});
-              if(ur.ok) user=await ur.json();
-            }catch(e2){}
-          }
-          const session={access_token,refresh_token,user};
-          sb.auth._session=session;
-          localStorage.setItem('eq_session',JSON.stringify(session));
-          window.history.replaceState({},document.title,window.location.pathname);
-          return {data:{session}};
-        }
-      }
-      // Check localStorage — but DON'T verify via network (token may be fresh and valid)
-      try{
-        const stored=localStorage.getItem('eq_session');
-        if(stored){
-          const s=JSON.parse(stored);
-          if(s&&s.access_token&&s.user){
-            sb.auth._session=s;
-            return {data:{session:s}};
-          }
-        }
-      }catch(e){localStorage.removeItem('eq_session');}
-      return {data:{session:null}};
+      const {data,error} = await _sbClient.auth.getSession();
+      return {data:{session: data?.session || null}};
     },
-    async resetPasswordForEmail(email,{redirectTo}={}){
-      const res=await fetch(SB_URL+'/auth/v1/recover',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,redirect_to:redirectTo})});
-      return res.ok?{error:null}:{error:{message:'Error al enviar el email'}};
+    async resetPasswordForEmail(email,opts){
+      const {error} = await _sbClient.auth.resetPasswordForEmail(email,opts);
+      return error ? {error} : {error:null};
     },
     onAuthStateChange(cb){
-      // Called manually after getSession
-      window._authCb=cb;
-      return {data:{subscription:{unsubscribe:()=>{}}}};
+      return _sbClient.auth.onAuthStateChange(cb);
     }
   },
   from(table){
-    const token=sb.auth._session?.access_token||SB_KEY;
-    const base={headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+token,'Prefer':'return=representation'}};
-    return {
+    // Wrapper sobre fetch REST directo para mantener compatibilidad
+    // Usa el token de sesion actual del SDK
+    const getToken = () => _sbClient.auth._currentSession?.access_token || SB_KEY;
+    const base = () => ({headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+getToken(),'Prefer':'return=representation'}});
+    const q = {
+      _table: table, _sel: '*', _eq: [], _ord: null,
       select(cols='*'){this._sel=cols;return this;},
-      eq(col,val){this._eq=this._eq||[];this._eq.push(`${col}=eq.${val}`);return this;},
+      eq(col,val){this._eq.push(`${col}=eq.${val}`);return this;},
       order(col,{ascending:asc=true}={}){this._ord=`${col}.${asc?'asc':'desc'}`;return this;},
+      single(){this._single=true;return this;},
       async then(res,rej){
         try{
-          let url=`${SB_URL}/rest/v1/${table}?select=${this._sel||'*'}`;
-          if(this._eq) url+='&'+this._eq.join('&');
+          let url=`${SB_URL}/rest/v1/${table}?select=${this._sel}`;
+          if(this._eq.length) url+='&'+this._eq.join('&');
           if(this._ord) url+=`&order=${this._ord}`;
-          const r=await fetch(url,{...base,headers:{...base.headers,'Range':'0-999'}});
+          const r=await fetch(url,{headers:{...base().headers,'Range':'0-999'}});
           const d=await r.json();
           res({data:Array.isArray(d)?d:[],error:null});
         }catch(e){rej?rej({data:null,error:e}):res({data:[],error:e});}
       },
       async insert(rows){
-        const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',...base,headers:{...base.headers,'Prefer':'return=representation'},body:JSON.stringify(rows)});
+        const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',...base(),body:JSON.stringify(rows)});
         const d=await r.json();
         return Array.isArray(d)?{data:d[0]||d,error:null}:{data:d,error:d.message?d:null};
       },
       async update(data){
         let url=`${SB_URL}/rest/v1/${table}?`;
-        if(this._eq) url+=this._eq.join('&');
-        const r=await fetch(url,{method:'PATCH',...base,headers:{...base.headers,'Prefer':'return=representation'},body:JSON.stringify(data)});
+        if(this._eq.length) url+=this._eq.join('&');
+        const r=await fetch(url,{method:'PATCH',...base(),body:JSON.stringify(data)});
         return {data:await r.json(),error:null};
       },
       async upsert(rows,{onConflict}={}){
         let url=`${SB_URL}/rest/v1/${table}`;
         if(onConflict) url+=`?on_conflict=${onConflict}`;
-        const r=await fetch(url,{method:'POST',...base,headers:{...base.headers,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(rows)});
+        const r=await fetch(url,{method:'POST',headers:{...base().headers,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(rows)});
         return {data:await r.json(),error:null};
       },
       async delete(){
         let url=`${SB_URL}/rest/v1/${table}?`;
-        if(this._eq) url+=this._eq.join('&');
-        await fetch(url,{method:'DELETE',...base});
+        if(this._eq.length) url+=this._eq.join('&');
+        await fetch(url,{method:'DELETE',...base()});
         return {error:null};
       },
-      single(){this._single=true;return this;}
     };
+    return q;
   }
 };
 window.sb=sb;
-console.log('✅ Equilibra Supabase ready');
+console.log('✅ Equilibra — Supabase SDK v2 listo');
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2393,9 +2351,9 @@ window._doForgotPassword=async function(){
   else setAuthError('✓ Revisá tu email para restablecer la contraseña');
 };
 window._doSignOut=async function(){
-  await sb.auth.signOut();
   currentUser=null; txns=[]; budgets={}; objectives=[]; debts=[];
-  showScreen('auth');
+  await sb.auth.signOut();
+  // onAuthStateChange va a disparar showScreen('auth') automaticamente
 };
 
 // Auth functions registered above as window globals
@@ -2621,30 +2579,38 @@ function setUserDisplay(user){
 
 // ══════════════════════════════════════════════
 // ── BOOT ─────────────────────────────────────
-async function checkAuth(){
-  try{
-    const {data:{session}}=await sb.auth.getSession();
-    if(session&&session.user&&session.user.id&&session.user.id!=='unknown'){
-      currentUser=session.user;
-      setUserDisplay(currentUser);
-      await loadUserData(currentUser.id);
-    } else {
-      showScreen('auth');
-    }
-  }catch(e){
-    console.error('Auth check error:',e);
-    showScreen('auth');
-  }
-}
 showScreen('loading');
 document.getElementById('sb-toggle').style.display='none';
 document.getElementById('auth-btn').dataset.mode='login';
-// Run after DOM fully ready
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',checkAuth);
-}else{
-  checkAuth();
-}
+
+// El SDK de Supabase emite onAuthStateChange automaticamente cuando:
+// - Detecta #access_token en la URL luego de OAuth → evento SIGNED_IN
+// - Hay sesion guardada en localStorage → evento INITIAL_SESSION con session
+// - No hay sesion → evento INITIAL_SESSION con session=null
+// - Se cierra sesion → evento SIGNED_OUT
+let _appLoaded = false;
+_sbClient.auth.onAuthStateChange(async (event, session) => {
+  console.log('[Equilibra] Auth event:', event, '| user:', session?.user?.email || 'none');
+
+  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user){
+    // Limpiar hash de la URL si quedaron tokens expuestos
+    if(window.location.hash.includes('access_token')){
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    // Si ya cargamos la app con este usuario, no recargar datos
+    if(_appLoaded && currentUser?.id === session.user.id) return;
+    currentUser = session.user;
+    setUserDisplay(currentUser);
+    _appLoaded = true;
+    await loadUserData(currentUser.id);
+  } else if(event === 'SIGNED_OUT'){
+    _appLoaded = false;
+    showScreen('auth');
+  } else if(event === 'INITIAL_SESSION' && !session){
+    // No hay sesion guardada ni en URL
+    showScreen('auth');
+  }
+});
 
 // ══════════════════════════════════════════════
 // MOTIVATIONAL CONTENT
