@@ -2309,7 +2309,7 @@ function renderOKRChart(canvasId){
 // LÓGICA FINANCIERA: balance, KRs automáticos, alertas, vencimientos
 // ══════════════════════════════════════════════
 function lsGet(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} if(typeof SYNC_KEYS!=='undefined'&&SYNC_KEYS.includes(k)) schedulePushSettings(); }
 function ymKey(d=new Date()){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function dayStart(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
 function escHtml(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -2339,11 +2339,11 @@ function syncAutoKRs(){
   const hasData=monthTotals().inc>0||monthTotals().exp>0;
   objectives.forEach(o=>o.krs.forEach(k=>{
     if(!k.auto||!AUTO_METRICS[k.auto]) return;
-    if(typeof k.id!=='number') map[String(k.id)]=k.auto; // solo IDs de Supabase; en invitado viaja en el KR
+    if(typeof k.id!=='number'&&_schemaV2!==true) map[String(k.id)]=k.auto; // respaldo local si la base no tiene auto_metric
     const v=hasData?AUTO_METRICS[k.auto].calc():0;
     if(v!==k.current){ k.current=v; changed=true; if(currentUser&&typeof k.id!=='number') dbUpdateKR(k.id,v); }
   }));
-  lsSet('eq_kr_auto',map);
+  if(currentUser&&_schemaV2!==true) lsSet('eq_kr_auto',map);
   if(changed&&!currentUser) saveGuestData();
 }
 function applyAutoKRMap(){ const map=autoKRMap(); objectives.forEach(o=>o.krs.forEach(k=>{ if(map[String(k.id)]) k.auto=map[String(k.id)]; })); }
@@ -2421,7 +2421,7 @@ function dueStatus(d,prefs=reminderPrefs(),today=dayStart(new Date())){
   const day=debtDueDay(d); if(!day||!(d.balance>0)) return null;
   const due=currentDue(d,today);
   const diff=Math.round((due-today)/86400000);
-  const paid=paidMap()[String(d.id)]===ymKey(due);
+  const paid=(d.paidMonth||paidMap()[String(d.id)])===ymKey(due);
   let state;
   if(paid) state='paid';
   else if(diff<0) state='overdue';
@@ -2454,11 +2454,15 @@ function sendDueReminder(id,channel){
   else window.open(waLink(msg),'_blank','noopener');
 }
 function toggleDuePaid(id){
-  const m=paidMap(), k=String(id), s=dueList().find(x=>sameId(x.debt.id,id)); if(!s) return;
-  const mk=ymKey(s.due);
-  if(m[k]===mk) delete m[k]; else m[k]=mk;
-  lsSet('eq_paid',m); renderDueViews();
-  toast(m[k]?L3('✓ Marcado como pagado','✓ Marked as paid','✓ Marcado como pago'):L3('Marcado como pendiente','Marked as pending','Marcado como pendente'));
+  const s=dueList().find(x=>sameId(x.debt.id,id)); if(!s) return;
+  const d=s.debt, mk=ymKey(s.due), m=paidMap(), k=String(id);
+  const nowPaid=s.state!=='paid';
+  d.paidMonth=nowPaid?mk:null;
+  if(nowPaid) m[k]=mk; else delete m[k];
+  if(currentUser&&_schemaV2!==true) lsSet('eq_paid',m);   // respaldo local solo si la base no tiene paid_month
+  dbSaveDebt(d);        // nube (o dispositivo, en modo invitado)
+  renderDueViews();
+  toast(nowPaid?L3('✓ Marcado como pagado','✓ Marked as paid','✓ Marcado como pago'):L3('Marcado como pendiente','Marked as pending','Marcado como pendente'));
 }
 window.sendDueReminder=sendDueReminder; window.toggleDuePaid=toggleDuePaid;
 
@@ -2995,6 +2999,72 @@ function initSheets(){
   document.querySelectorAll('.modal-overlay').forEach(ov=>{ const m=ov.querySelector('.modal'); if(m) enableSheetDrag(m,()=>ov.classList.remove('open')); });
 }
 document.addEventListener('DOMContentLoaded',()=>{ initDisclose(); initSheets(); });
+
+// ══════════════════════════════════════════════
+// SINCRONIZACIÓN ENTRE DISPOSITIVOS (Supabase)
+// Si la base todavía no tiene las columnas nuevas, la app sigue
+// funcionando y guarda esos datos solo en este dispositivo.
+// ══════════════════════════════════════════════
+const SYNC_KEYS=['eq_reminders','eq_invest','eq_debtplan','eq_lang'];
+const NEW_COLS=['category','auto_metric','paid_month','settings'];
+let _schemaV2=null, _schemaWarned=false;
+function isMissingColumn(err){
+  const m=String(err?.message||'')+' '+String(err?.details?.message||'');
+  return /column|schema cache/i.test(m) && NEW_COLS.some(c=>m.includes(c));
+}
+function noteSchemaMissing(){
+  _schemaV2=false;
+  if(_schemaWarned) return; _schemaWarned=true;
+  console.warn('[sync] La base no tiene las columnas nuevas: corré equilibra-actualizacion.sql en Supabase');
+}
+const stripCols=(row,keys)=>{ const c={...row}; keys.forEach(k=>delete c[k]); return c; };
+// Insertar/actualizar probando con las columnas nuevas y, si faltan, sin ellas
+async function sbInsertCompat(table,rows,extra){
+  const send=r=>sb.from(table).insert(r).select();
+  if(_schemaV2===false) return send(Array.isArray(rows)?rows.map(r=>stripCols(r,extra)):stripCols(rows,extra));
+  let res=await send(rows);
+  if(res.error&&isMissingColumn(res.error)){ noteSchemaMissing(); res=await send(Array.isArray(rows)?rows.map(r=>stripCols(r,extra)):stripCols(rows,extra)); }
+  return res;
+}
+async function sbUpdateCompat(table,row,id,extra){
+  const send=r=>sb.from(table).update(r).eq('id',id);
+  if(_schemaV2===false) return send(stripCols(row,extra));
+  let res=await send(row);
+  if(res.error&&isMissingColumn(res.error)){ noteSchemaMissing(); res=await send(stripCols(row,extra)); }
+  return res;
+}
+
+// ── Preferencias (recordatorios, inversiones, plan, idioma) ──
+let _pushT=null;
+function schedulePushSettings(){ if(!currentUser||_schemaV2===false) return; clearTimeout(_pushT); _pushT=setTimeout(pushSettings,800); }
+async function pushSettings(){
+  if(!currentUser||_schemaV2===false) return;
+  const settings={}; SYNC_KEYS.forEach(k=>{ const v=lsGet(k,null); if(v!==null) settings[k]=v; });
+  const {data,error}=await sb.from('profiles').update({settings}).eq('id',currentUser.id).select();
+  if(error){ if(isMissingColumn(error)) noteSchemaMissing(); return; }
+  if(Array.isArray(data)&&!data.length) await sb.from('profiles').insert({id:currentUser.id,settings});
+}
+// Al iniciar sesión: la nube manda; si la nube está vacía, se sube lo local
+async function pullSettings(uid){
+  const {data,error}=await sb.from('profiles').select('*').eq('id',uid).single();
+  if(error||!data) return;
+  if(!('settings' in data)){ noteSchemaMissing(); return; }
+  _schemaV2=true;
+  const s=data.settings||{}, keys=SYNC_KEYS.filter(k=>k in s);
+  if(keys.length) keys.forEach(k=>{ try{ localStorage.setItem(k,JSON.stringify(s[k])); }catch(e){} });
+  else schedulePushSettings();
+}
+// Datos que antes vivían solo en este navegador: se suben una única vez
+async function migrateLocalOnly(){
+  if(!currentUser||_schemaV2!==true) return;
+  const paid=lsGet('eq_paid',{}), kra=lsGet('eq_kr_auto',{});
+  const jobs=[];
+  debts.forEach(d=>{ const pm=paid[String(d.id)]; if(pm&&!d.paidMonth){ d.paidMonth=pm; jobs.push(sbUpdateCompat('debts',{paid_month:pm},d.id,['paid_month'])); } });
+  objectives.forEach(o=>o.krs.forEach(k=>{ const m=kra[String(k.id)]; if(m&&!k.autoSynced){ k.auto=m; jobs.push(sbUpdateCompat('key_results',{auto_metric:m},k.id,['auto_metric'])); } }));
+  if(!jobs.length) return;
+  const res=await Promise.all(jobs);
+  if(res.every(r=>!r.error)){ try{ localStorage.removeItem('eq_paid'); localStorage.removeItem('eq_kr_auto'); }catch(e){} }
+}
 
 // ── TEMA: claro / oscuro / auto ──────────────
 function getThemePref(){ try{ return localStorage.getItem('eq_theme')||'dark'; }catch(e){ return 'dark'; } }
@@ -4329,11 +4399,13 @@ async function loadUserData(userId){
       // Default budgets for new user
       budgets={Alimentación:0,Transporte:0,Salud:0,Entretenimiento:0,Servicios:0,Educación:0,Ropa:0,Otros:0};
     }
-    debts = (debtRes.data||[]).map(d=>({id:d.id,type:d.type,entity:d.entity,brand:d.brand,currency:d.currency,color:d.color,balance:parseFloat(d.balance),limit:parseFloat(d.credit_limit||0),monthlyPay:parseFloat(d.monthly_pay||0),minMethod:d.min_method,minValue:parseFloat(d.min_value||0),dueDate:d.due_date,rate:parseFloat(d.rate||0),notes:d.notes}));
+    debts = (debtRes.data||[]).map(d=>({id:d.id,type:d.type,entity:d.entity,brand:d.brand,currency:d.currency,color:d.color,balance:parseFloat(d.balance),limit:parseFloat(d.credit_limit||0),monthlyPay:parseFloat(d.monthly_pay||0),minMethod:d.min_method,minValue:parseFloat(d.min_value||0),dueDate:d.due_date,rate:parseFloat(d.rate||0),notes:d.notes,paidMonth:d.paid_month||null}));
     const krsById={};
-    (krRes.data||[]).forEach(kr=>{ if(!krsById[kr.objective_id]) krsById[kr.objective_id]=[]; krsById[kr.objective_id].push({id:kr.id,name:kr.name,current:parseFloat(kr.current_value),target:parseFloat(kr.target_value)}); });
-    objectives = (objRes.data||[]).map(o=>({id:o.id,title:o.title,cycle:o.cycle,krs:krsById[o.id]||[]}));
+    (krRes.data||[]).forEach(kr=>{ if(!krsById[kr.objective_id]) krsById[kr.objective_id]=[]; krsById[kr.objective_id].push({id:kr.id,name:kr.name,current:parseFloat(kr.current_value),target:parseFloat(kr.target_value),...(kr.auto_metric?{auto:kr.auto_metric,autoSynced:true}:{})}); });
+    objectives = (objRes.data||[]).map(o=>({id:o.id,title:o.title,cycle:o.cycle,category:o.category||'finance',krs:krsById[o.id]||[]}));
     applyAutoKRMap();
+    await pullSettings(userId);
+    await migrateLocalOnly();
   } catch(e){ console.error('Load error',e); }
   renderAppShell();
 }
@@ -4359,12 +4431,12 @@ async function dbSaveBudgets(){
 
 async function dbSaveDebt(d){
   if(!currentUser){ saveGuestData(); return; }
-  const row={user_id:currentUser.id,type:d.type,entity:d.entity,brand:d.brand,currency:d.currency,color:d.color,balance:d.balance,credit_limit:d.limit,monthly_pay:d.monthlyPay,min_method:d.minMethod,min_value:d.minValue,due_date:d.dueDate||null,rate:d.rate,notes:d.notes};
+  const row={paid_month:d.paidMonth||null,user_id:currentUser.id,type:d.type,entity:d.entity,brand:d.brand,currency:d.currency,color:d.color,balance:d.balance,credit_limit:d.limit,monthly_pay:d.monthlyPay,min_method:d.minMethod,min_value:d.minValue,due_date:d.dueDate||null,rate:d.rate,notes:d.notes};
   if(typeof d.id==='number'){
-    const {data,error}=await sb.from('debts').insert(row).select().single();
+    const {data:rows,error}=await sbInsertCompat('debts',row,['paid_month']); const data=rows?.[0];
     if(!error&&data){ const idx=debts.findIndex(x=>x.id===d.id); if(idx>=0) debts[idx].id=data.id; }
   } else {
-    await sb.from('debts').update(row).eq('id',d.id);
+    await sbUpdateCompat('debts',row,d.id,['paid_month']);
   }
 }
 async function dbDeleteDebt(id){ if(!currentUser){ saveGuestData(); return; } await sb.from('debts').delete().eq('id',id); }
@@ -4372,19 +4444,19 @@ async function dbDeleteDebt(id){ if(!currentUser){ saveGuestData(); return; } aw
 async function dbSaveObjective(o){
   if(!currentUser){ saveGuestData(); return; }
   if(typeof o.id==='number'){
-    const {data}=await sb.from('objectives').insert({user_id:currentUser.id,title:o.title,cycle:o.cycle}).select().single();
+    const {data:rows}=await sbInsertCompat('objectives',{user_id:currentUser.id,title:o.title,cycle:o.cycle,category:o.category||'finance'},['category']); const data=rows?.[0];
     if(data){
       const idx=objectives.findIndex(x=>x.id===o.id); if(idx>=0) objectives[idx].id=data.id;
       // Insert KRs
       if(o.krs.length){
-        const krRows=o.krs.map((kr,i)=>({objective_id:data.id,user_id:currentUser.id,name:kr.name,current_value:kr.current,target_value:kr.target,sort_order:i}));
-        const {data:krData}=await sb.from('key_results').insert(krRows).select();
+        const krRows=o.krs.map((kr,i)=>({objective_id:data.id,user_id:currentUser.id,name:kr.name,current_value:kr.current,target_value:kr.target,sort_order:i,auto_metric:kr.auto||null}));
+        const {data:krData}=await sbInsertCompat('key_results',krRows,['auto_metric']);
         const obj=objectives.find(x=>sameId(x.id,data.id));
         if(obj&&Array.isArray(krData)) krData.forEach((k,i)=>{ if(obj.krs[i]) obj.krs[i].id=k.id; });
       }
     }
   } else {
-    await sb.from('objectives').update({title:o.title,cycle:o.cycle}).eq('id',o.id);
+    await sbUpdateCompat('objectives',{title:o.title,cycle:o.cycle,category:o.category||'finance'},o.id,['category']);
   }
 }
 async function dbDeleteObjective(id){ if(!currentUser){ saveGuestData(); return; } { await sb.from('objectives').delete().eq('id',id); } }
@@ -4671,7 +4743,17 @@ function renderOKR(){
 }
 
 // Patch OKR modal to include category selector
+// Ciclos: trimestre anterior, actual y los 4 siguientes, más el año
+function fillCycleOptions(sel){
+  if(!sel) return;
+  const d=new Date(), y=d.getFullYear(), q=Math.floor(d.getMonth()/3)+1, cur=`Q${q} ${y}`, opts=[];
+  let yy=y, qq=q-1; if(qq<1){ qq=4; yy--; }
+  for(let i=0;i<6;i++){ opts.push(`Q${qq} ${yy}`); if(++qq>4){ qq=1; yy++; } }
+  opts.push(String(y),String(y+1));
+  sel.innerHTML=opts.map(o=>`<option value="${o}" ${o===cur?'selected':''}>${/^\d{4}$/.test(o)?L3('Año ','Year ','Ano ')+o:o}</option>`).join('');
+}
 function openObjModal(){
+  fillCycleOptions(document.getElementById('new-obj-cycle'));
   document.getElementById('obj-modal').classList.add('open');
   krCount=0; document.getElementById('kr-inputs').innerHTML='';
   document.getElementById('new-obj-title').value='';
